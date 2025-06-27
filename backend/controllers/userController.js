@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import dotenv from "dotenv";
 import ImageKit from "imagekit";
+import { console } from "inspector";
 
 dotenv.config();
 const SECRET = process.env.JWT_SECRET;
@@ -128,4 +129,42 @@ const signout = (req, res) => {
   }
 };
 
-export { signup, login, signout };
+const changeName = async (req, res) => {
+  try {
+    // Check if req.user exists
+    if (!req.user) {
+      console.log("req.user is undefined");
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const userId = req.user.userId;
+    const newName = req.body?.newName;
+
+    if (!newName) {
+      return res.status(400).json({ message: "New name is required" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { name: newName },
+      { new: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log("Updated User ✅:", updatedUser);
+
+    res.status(200).json({
+      message: "Name updated successfully",
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error("❌ Name change error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+export { signup, login, signout, changeName };
