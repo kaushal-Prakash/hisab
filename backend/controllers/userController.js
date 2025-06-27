@@ -136,8 +136,7 @@ const changeName = async (req, res) => {
       console.log("req.user is undefined");
       return res.status(401).json({ message: "Unauthorized" });
     }
-
-    const userId = req.user.userId;
+    const userId = req.user._id;
     const newName = req.body?.newName;
 
     if (!newName) {
@@ -154,17 +153,42 @@ const changeName = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    console.log("Updated User ✅:", updatedUser);
+    console.log("Updated User :", updatedUser);
 
     res.status(200).json({
       message: "Name updated successfully",
       user: updatedUser
     });
   } catch (error) {
-    console.error("❌ Name change error:", error);
+    console.error("Name change error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user?.userId;
 
-export { signup, login, signout, changeName };
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) return res.status(400).json({ message: "Incorrect current password" });
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.status(200).json({ message: "Password changed successfully" });
+
+  } catch (err) {
+    console.error("Change password error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export { signup, login, signout, changeName, changePassword };
