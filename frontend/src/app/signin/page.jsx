@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -20,6 +20,7 @@ import { toast } from "react-toastify";
 export default function SignInPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -35,20 +36,37 @@ export default function SignInPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/user/login`,
         formData,
-        { withCredentials: true }
+        { 
+          withCredentials: true,
+          timeout: 10000 // 10 seconds timeout
+        }
       );
+      
       if (response.status === 200) {
-        // Successfully logged in
+        toast.success("Login successful!");
         router.push("/dashboard");
-      } else {
-        // Handle error response
-        toast.error(response.data.message || "Login failed");
       }
-    } catch (error) {}
+    } catch (error) {
+      let errorMessage = "Login failed. Please try again.";
+      
+      if (error.response) {
+        // Server responded with error status
+        errorMessage = error.response.data.message || errorMessage;
+      } else if (error.request) {
+        // Request was made but no response received
+        errorMessage = "Network error. Please check your connection.";
+      }
+      
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -76,6 +94,7 @@ export default function SignInPage() {
                 value={formData.email}
                 onChange={handleChange}
                 className="focus:ring-green-500 focus:border-green-500"
+                disabled={isLoading}
               />
             </div>
 
@@ -92,6 +111,7 @@ export default function SignInPage() {
                   value={formData.password}
                   onChange={handleChange}
                   className="focus:ring-green-500 focus:border-green-500 pr-10"
+                  disabled={isLoading}
                 />
                 <Button
                   type="button"
@@ -99,6 +119,7 @@ export default function SignInPage() {
                   size="sm"
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={isLoading}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4 text-gray-500" />
@@ -114,6 +135,7 @@ export default function SignInPage() {
                 variant="link"
                 className="text-green-600 hover:text-green-700 p-0 h-auto text-sm"
                 asChild
+                disabled={isLoading}
               >
                 <Link href="/forgot-password">Forgot password?</Link>
               </Button>
@@ -123,9 +145,17 @@ export default function SignInPage() {
 
             <Button
               type="submit"
-              className="w-full cursor-pointer bg-green-600 hover:bg-green-700 transition"
+              className="w-full bg-green-600 hover:bg-green-700 transition"
+              disabled={isLoading}
             >
-              Sign In
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In"
+              )}
             </Button>
 
             <div className="text-center text-sm text-gray-600">
@@ -134,6 +164,7 @@ export default function SignInPage() {
                 variant="link"
                 className="text-green-600 hover:text-green-700 p-0 h-auto"
                 asChild
+                disabled={isLoading}
               >
                 <Link href="/signup">Sign up</Link>
               </Button>

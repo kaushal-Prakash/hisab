@@ -39,7 +39,6 @@ export default function RootLayout({ children }) {
           pauseOnFocusLoss
           pauseOnHover
           theme="dark"
-          transition={Bounce}
         />
       </body>
     </html>
