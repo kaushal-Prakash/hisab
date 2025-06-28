@@ -18,7 +18,6 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 export default function SignInPage() {
-  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -50,7 +49,7 @@ export default function SignInPage() {
       
       if (response.status === 200) {
         toast.success("Login successful!");
-        router.push("/dashboard");
+        window.location.href = "/dashboard"; // Redirect to dashboard
       }
     } catch (error) {
       let errorMessage = "Login failed. Please try again.";
@@ -145,7 +144,7 @@ export default function SignInPage() {
 
             <Button
               type="submit"
-              className="w-full bg-green-600 hover:bg-green-700 transition"
+              className="w-full bg-green-600 cursor-pointer hover:bg-green-700 transition"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -162,7 +161,7 @@ export default function SignInPage() {
               Don't have an account?{" "}
               <Button
                 variant="link"
-                className="text-green-600 hover:text-green-700 p-0 h-auto"
+                className="text-green-600 cursor-pointer hover:text-green-700 p-0 h-auto"
                 asChild
                 disabled={isLoading}
               >
