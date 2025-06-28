@@ -38,6 +38,15 @@ const uploadPhoto = async (file, name) => {
   }
 };
 
+// Helper to delete photo from ImageKit
+const deletePhoto = async (fileId) => {
+  try {
+    await imagekit.deleteFile(fileId);
+  } catch (err) {
+    console.warn("Failed to delete old image:", err.message);
+  }
+};
+
 // SIGNUP
 const signup = async (req, res) => {
   try {
@@ -63,7 +72,7 @@ const signup = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      photo: photoUrl,
+      imageUrl: photoUrl,
     });
 
     const token = generateToken(newUser._id);
@@ -147,7 +156,7 @@ const changeName = async (req, res) => {
       userId,
       { name: newName },
       { new: true }
-    ).select('-password');
+    ).select("-password");
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
@@ -157,7 +166,7 @@ const changeName = async (req, res) => {
 
     res.status(200).json({
       message: "Name updated successfully",
-      user: updatedUser
+      user: updatedUser,
     });
   } catch (error) {
     console.error("Name change error:", error);
@@ -178,17 +187,80 @@ const changePassword = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Incorrect current password" });
+    if (!isMatch)
+      return res.status(400).json({ message: "Incorrect current password" });
 
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
     res.status(200).json({ message: "Password changed successfully" });
-
   } catch (err) {
     console.error("Change password error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-export { signup, login, signout, changeName, changePassword };
+const changePhoto = async (req, res) => {
+  try {
+    const userId = req.user?._id;
+    const photo = req.file; // Multer uploads file to memory/disk
+
+    // Validate user authentication
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: User not logged in." });
+    }
+
+    // Validate photo upload
+    if (!photo) {
+      return res
+        .status(400)
+        .json({ message: "Bad Request: Photo is required." });
+    }
+
+    // Find user in database
+    const user = await User.findById(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "User not found. Try logging in again." });
+    }
+
+    //Delete old photo from ImageKit (if exists)
+    if (user.imageUrl) {
+      try {
+        await deletePhoto(user.imageUrl);
+      } catch (deleteError) {
+        console.error("Failed to delete old photo:", deleteError);
+        // Continue even if deletion fails (optional: return error if critical)
+      }
+    }
+
+    //Upload new photo to ImageKit
+    let newPhotoUrl;
+    try {
+      newPhotoUrl = await uploadPhoto(photo, user.name);
+    } catch (uploadError) {
+      console.error("Failed to upload new photo:", uploadError);
+      return res
+        .status(500)
+        .json({ message: "Failed to upload photo. Please try again." });
+    }
+
+    // Update user document
+    user.imageUrl = newPhotoUrl;
+    await user.save();
+
+    // Success response
+    return res.status(200).json({
+      message: "Photo updated successfully",
+    });
+  } catch (error) {
+    console.error("Change photo error:", error);
+    return res.status(500).json({
+      message: "Internal server error. Please try again later.",
+    });
+  }
+};
+export { signup, login, signout, changeName, changePassword, changePhoto };
