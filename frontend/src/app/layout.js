@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import { ToastContainer } from "react-toastify";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,8 +17,8 @@ export const metadata = {
   title: "hisab.",
   description: "Your personal finance tracker",
   icons: {
-    icon: '/logo.png'
-  }
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -28,6 +29,18 @@ export default function RootLayout({ children }) {
       >
         <Navbar />
         {children}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick={false}
+          rtl={false}
+          pauseOnFocusLoss
+          pauseOnHover
+          theme="dark"
+          transition={Bounce}
+        />
       </body>
     </html>
   );

@@ -93,7 +93,6 @@ const signup = async (req, res) => {
   }
 };
 
-// LOGIN remains the same
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -263,4 +262,25 @@ const changePhoto = async (req, res) => {
     });
   }
 };
-export { signup, login, signout, changeName, changePassword, changePhoto };
+
+const isAuthenticated = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error("Authentication error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+export {
+  signup,
+  login,
+  signout,
+  changeName,
+  changePassword,
+  changePhoto,
+  isAuthenticated,
+};
