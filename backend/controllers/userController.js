@@ -53,7 +53,7 @@ const signup = async (req, res) => {
     const { name, email, password } = req.body;
     const photo = req.file; // Now using multer file object
 
-    if (!name || !email || !password)
+    if (!name || !email || !password || !photo)
       return res.status(400).json({ message: "All fields are required" });
 
     const existingUser = await User.findOne({ email });

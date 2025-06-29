@@ -18,6 +18,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 export default function SignInPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -49,7 +50,7 @@ export default function SignInPage() {
       
       if (response.status === 200) {
         toast.success("Login successful!");
-        window.location.href = "/dashboard"; // Redirect to dashboard
+        router.push("/dashboard"); // Redirect to dashboard
       }
     } catch (error) {
       let errorMessage = "Login failed. Please try again.";

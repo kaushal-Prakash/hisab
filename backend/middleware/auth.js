@@ -1,51 +1,54 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const authMiddleware = async (req, res, next) => {
   try {
-    const cookie = req.headers.cookie;
-    if (!cookie) {
-      return res.status(401).json({
-        isAuthenticated: false,
-        message: "Not authorized - No cookie found"
-      });
-    }
-
-    // Extract token using regex or split
-    const token = cookie
-      .split(';')
-      .find(c => c.trim().startsWith('token='))
-      ?.split('=')[1];
-
+    // Get token from cookies (using cookie-parser)
+    const token = req.cookies?.token || req.cookies?.__session;
+    console.log("Token",token);
+    console.log("Cookies",req.cookies);
     if (!token) {
       return res.status(401).json({
+        success: false,
         isAuthenticated: false,
-        message: "Not authorized - Token not found in cookie"
+        message: "Authorization denied - No token provided"
       });
     }
 
+    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    const user = await User.findById(decoded.id).select('-password');
-
-    if (!user) {
+    
+    if (!decoded?.id) {
       return res.status(401).json({
+        success: false,
+        isAuthenticated: false,
+        message: "Invalid token - User identifier missing"
+      });
+    }
+
+    // Find user and exclude password
+    const user = await User.findById(decoded.id).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
         isAuthenticated: false,
         message: "User not found"
       });
     }
 
-    req.user = user; 
-
+    // Attach user to request
+    req.user = user;
     next();
 
   } catch (error) {
-    console.error('JWT Error:', error.message);
-    res.status(401).json({
+    console.error('Authentication Error:', error.message);
+    return res.status(401).json({
+      success: false,
       isAuthenticated: false,
-      message: error.message.includes('jwt expired')
-        ? "Session expired. Please login again."
-        : "Invalid token"
+      message: "Authorization denied - Invalid token"
     });
   }
 };

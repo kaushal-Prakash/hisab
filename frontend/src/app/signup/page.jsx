@@ -10,29 +10,33 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 export default function SignUpPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    profilePhoto: null,
-    previewImage: "",
+    photo: null,
+    previewImage: null, // For previewing the uploaded photo
   });
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "profilePhoto" && files && files[0]) {
+    if (name === "photo" && files && files[0]) {
       const file = files[0];
       setFormData({
         ...formData,
-        profilePhoto: file,
+        photo: file,
         previewImage: URL.createObjectURL(file),
       });
     } else {
@@ -43,11 +47,50 @@ export default function SignUpPage() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log(formData);
-    // router.push('/dashboard');
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Create FormData object
+      const formDataToSend = new FormData();
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("email", formData.email);
+      formDataToSend.append("password", formData.password);
+      if (formData.photo) {
+        formDataToSend.append("photo", formData.photo);
+      }
+
+      // Make POST request
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/user/signup`,
+        formDataToSend,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true, // Include cookies for session management
+        }
+      );
+
+      if(response.status === 201){
+        console.log("Signup successful:", response.data);
+        toast.success("Account created successfully!");
+        router.push("/dashboard"); 
+        
+      }else{
+        toast.info(response.data.message); // Show any message returned from the server
+      }
+    } catch (err) {
+      console.error("Signup error:", err);
+      setError(
+        err.response?.data?.message ||
+          "An error occurred during signup. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -63,6 +106,11 @@ export default function SignUpPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Error message */}
+            {error && (
+              <div className="text-red-500 text-sm text-center">{error}</div>
+            )}
+
             {/* Profile Photo Upload */}
             <div className="flex flex-col items-center">
               <div className="relative h-24 w-24 mb-4">
@@ -83,7 +131,7 @@ export default function SignUpPage() {
                 htmlFor="profilePhoto"
                 className="cursor-pointer bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition"
               >
-                Upload Photo
+                Upload Photo (limit 2MB)
                 <Input
                   id="profilePhoto"
                   name="photo"
@@ -160,8 +208,9 @@ export default function SignUpPage() {
             <Button
               type="submit"
               className="w-full cursor-pointer bg-green-600 hover:bg-green-700 transition"
+              disabled={isLoading}
             >
-              Create Account
+              {isLoading ? "Creating account..." : "Create Account"}
             </Button>
 
             <div className="text-center text-sm text-gray-600">
