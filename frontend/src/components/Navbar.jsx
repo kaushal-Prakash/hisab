@@ -60,13 +60,9 @@ function Navbar() {
     }
   };
 
-  if (authStatus === "loading") {
-    return null;
-  }
-
   return (
     <div className="fixed top-0 w-full z-50 pt-4 px-4">
-      <motion.div 
+      <motion.div
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -94,7 +90,7 @@ function Navbar() {
         </div>
 
         {/* Mobile Menu Button */}
-        <button 
+        <button
           className="md:hidden p-2 rounded-md text-gray-600 hover:text-black focus:outline-none"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
@@ -131,7 +127,10 @@ function Navbar() {
           <div className="flex items-center gap-4">
             {authStatus === "authenticated" ? (
               <>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
                   <Link
                     href="/dashboard"
                     className="flex font-semibold text-sm rounded-full items-center hover:underline underline-offset-4"
@@ -140,7 +139,10 @@ function Navbar() {
                     Dashboard
                   </Link>
                 </motion.div>
-                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
                   <Link href="/profile">
                     <Image
                       src={avatar}
@@ -151,11 +153,11 @@ function Navbar() {
                     />
                   </Link>
                 </motion.div>
-                <motion.button 
+                <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   className="text-gray-600 hover:text-black transition"
-                  title="Logout" 
+                  title="Logout"
                   onClick={handleLogout}
                 >
                   <LogOut className="h-5 w-5" />
@@ -164,7 +166,10 @@ function Navbar() {
             ) : (
               !isAuthPage && (
                 <>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
                     <Link
                       href="/signin"
                       className="bg-green-600 font-semibold text-white px-4 py-2 rounded-full hover:bg-green-700 transition"
@@ -172,7 +177,10 @@ function Navbar() {
                       Sign In
                     </Link>
                   </motion.div>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
                     <Link
                       href="/signup"
                       className="bg-white border-2 border-green-600 font-semibold text-green-600 px-4 py-2 rounded-full hover:bg-green-50 transition"
@@ -200,7 +208,7 @@ function Navbar() {
             <div className="flex flex-col p-4 space-y-4">
               {path === "/" && (
                 <>
-                  <motion.div 
+                  <motion.div
                     whileTap={{ scale: 0.98 }}
                     className="border-b border-gray-100 pb-2"
                   >
@@ -212,7 +220,7 @@ function Navbar() {
                       Features
                     </Link>
                   </motion.div>
-                  <motion.div 
+                  <motion.div
                     whileTap={{ scale: 0.98 }}
                     className="border-b border-gray-100 pb-2"
                   >
@@ -229,7 +237,7 @@ function Navbar() {
 
               {authStatus === "authenticated" ? (
                 <>
-                  <motion.div 
+                  <motion.div
                     whileTap={{ scale: 0.98 }}
                     className="border-b border-gray-100 pb-2"
                   >
@@ -242,7 +250,7 @@ function Navbar() {
                       Dashboard
                     </Link>
                   </motion.div>
-                  <motion.div 
+                  <motion.div
                     whileTap={{ scale: 0.98 }}
                     className="border-b border-gray-100 pb-2"
                   >
@@ -276,7 +284,7 @@ function Navbar() {
               ) : (
                 !isAuthPage && (
                   <>
-                    <motion.div 
+                    <motion.div
                       whileTap={{ scale: 0.98 }}
                       className="border-b border-gray-100 pb-2"
                     >
@@ -288,9 +296,7 @@ function Navbar() {
                         Sign In
                       </Link>
                     </motion.div>
-                    <motion.div 
-                      whileTap={{ scale: 0.98 }}
-                    >
+                    <motion.div whileTap={{ scale: 0.98 }}>
                       <Link
                         href="/signup"
                         className="block py-2 font-medium text-center border-2 border-green-600 text-green-600 rounded-lg"
