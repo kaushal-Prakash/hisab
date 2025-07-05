@@ -7,7 +7,7 @@ const addContact = async (req, res) => {
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
-    const user = User.findOne({ email });
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
