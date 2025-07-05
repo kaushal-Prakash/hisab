@@ -1,6 +1,13 @@
 "use client";
 import axios from "axios";
-import { LayoutDashboard, ArrowLeft, LogOut, Menu, X } from "lucide-react";
+import {
+  LayoutDashboard,
+  ArrowLeft,
+  LogOut,
+  Menu,
+  X,
+  LucideContactRound,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -104,7 +111,7 @@ function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-4">
           {path === "/" && (
-            <div className="flex items-center gap-6 font-semibold text-sm">
+            <div className="flex w-fit items-center gap-6 font-semibold text-sm">
               <motion.div whileHover={{ scale: 1.05 }}>
                 <Link
                   href="#features"
@@ -127,6 +134,18 @@ function Navbar() {
           <div className="flex items-center gap-4">
             {authStatus === "authenticated" ? (
               <>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Link
+                    href="/contacts"
+                    className="flex font-semibold text-sm rounded-full items-center hover:underline underline-offset-4"
+                  >
+                    <LucideContactRound className="h-5 w-5 mr-1" />
+                    Contacts
+                  </Link>
+                </motion.div>
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}

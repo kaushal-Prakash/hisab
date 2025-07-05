@@ -27,7 +27,7 @@ const addContact = async (req, res) => {
       }
       contact.contactIds.push(user._id);
       await contact.save();
-      return res.status(200).json({ message: "Contact added successfully" });
+      return res.status(200).json({ message: "Contact added successfully",contact });
     }
   } catch (error) {
     console.error("Error adding contact:", error);

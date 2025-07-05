@@ -1,6 +1,15 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Users, UserPlus, Search, X, User, ChevronDown, Trash2 } from "lucide-react";
+import {
+  Plus,
+  Users,
+  UserPlus,
+  Search,
+  X,
+  User,
+  ChevronDown,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,15 +19,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { toast, Toaster } from "sonner";
+import axios from "axios";
 
 // Mock data - replace with your actual data fetching
 const groups = [
@@ -43,14 +48,8 @@ const groups = [
   },
 ];
 
-const contacts = [
-  { _id: "102", name: "Alex", email: "alex@example.com" },
-  { _id: "103", name: "Sam", email: "sam@example.com" },
-  { _id: "104", name: "Priya", email: "priya@example.com" },
-  { _id: "105", name: "Rahul", email: "rahul@example.com" },
-];
-
 export default function Contacts() {
+  const [contacts, setContacts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("groups");
   const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
@@ -62,12 +61,60 @@ export default function Contacts() {
   });
   const [newContactEmail, setNewContactEmail] = useState("");
 
+  const fetchContacts = async () => {
+    try {
+      const response = await axios.get(
+        process.env.NEXT_PUBLIC_API_URL + "/contact/get-contacts",
+        {
+          withCredentials: true, // Include cookies in the request
+        }
+      );
+      if (response.status === 200) {
+        setContacts(response.data);
+      } else {
+        toast.error("Failed to fetch contacts");
+      }
+    } catch (error) {
+      console.error("Error fetching contacts:", error);
+      toast.error("Failed to fetch contacts");
+    }
+  };
+
+  useEffect(() => {
+    fetchContacts();
+  }, []);
+
+  // useEffect(() => {
+  //   const fetchGroups = async () => {
+  //     try {
+  //       const response = await axios.get(
+  //         process.env.NEXT_PUBLIC_API_URL + "/group/get-groups",
+  //         {
+  //           withCredentials: true, // Include cookies in the request
+  //         }
+  //       );
+  //       if (response.status === 200) {
+  //         // Assuming response.data is an array of groups
+  //         setGroups(response.data);
+  //       } else {
+  //         toast.error("Failed to fetch groups");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching groups:", error);
+  //       toast.error("Failed to fetch groups");
+  //     }
+  //   };
+  //   fetchGroups();
+  // }, []);
+
   const filteredGroups = groups.filter((group) =>
     group.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredContacts = contacts.filter((contact) =>
-    contact.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredContacts = contacts.filter(
+    (contact) =>
+      contact?.name &&
+      contact.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleCreateGroup = () => {
@@ -77,16 +124,53 @@ export default function Contacts() {
     setNewGroup({ name: "", description: "", members: [] });
   };
 
-  const handleAddContact = () => {
-    // Add your API call here
-    toast.success(`Contact request sent to ${newContactEmail}`);
-    setIsAddContactOpen(false);
-    setNewContactEmail("");
+  const handleAddContact = async () => {
+    try {
+      const email = newContactEmail.trim();
+      const response = await axios.post(
+        process.env.NEXT_PUBLIC_API_URL + "/contact/add-contact",
+        {
+          email,
+        },
+        {
+          withCredentials: true, // Include cookies in the request
+        }
+      );
+      console.log(response.data);
+      if (response.status !== 200) {
+        toast.error(response.data.message);
+      } else {
+        toast.success(response.data.message);
+        await fetchContacts(); // Refresh contacts after adding
+      }
+      setIsAddContactOpen(false);
+      setNewContactEmail("");
+    } catch (error) {
+      console.error("Error adding contact:", error);
+      toast.error(error.response?.data?.message);
+    }
   };
 
-  const handleDeleteContact = (contactId) => {
-    // Add your API call here
-    toast.success("Contact deleted successfully");
+  const handleDeleteContact = async (contactId) => {
+    try {
+      const response = await axios.post(
+        process.env.NEXT_PUBLIC_API_URL + "/contact/delete-contact",
+        {
+          contactId,
+        },
+        {
+          withCredentials: true, // Include cookies in the request
+        }
+      );
+      if (response.status === 200) {
+        setContacts(contacts.filter((contact) => contact._id !== contactId));
+        toast.success("Contact deleted successfully");
+      } else {
+        toast.error("Failed to delete contact: " + response.data.message);
+      }
+    } catch (error) {
+      console.error("Error deleting contact:", error);
+    }
   };
 
   return (
@@ -164,7 +248,7 @@ export default function Contacts() {
                                 <div className="flex items-center gap-3">
                                   <Avatar>
                                     <AvatarFallback>
-                                      {contact.name.charAt(0)}
+                                      {contact.name?.charAt(0)}
                                     </AvatarFallback>
                                   </Avatar>
                                   <div>
@@ -278,7 +362,7 @@ export default function Contacts() {
                     onClick={handleAddContact}
                     disabled={!newContactEmail}
                   >
-                    Send Request
+                    Add
                   </Button>
                 </div>
               </DialogContent>
@@ -412,8 +496,8 @@ export default function Contacts() {
                             </p>
                           </div>
                         </div>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="icon"
                           className="text-red-500 hover:text-red-600"
                           onClick={() => handleDeleteContact(contact._id)}
@@ -443,6 +527,7 @@ export default function Contacts() {
           </div>
         )}
       </motion.div>
+      <Toaster />
     </div>
   );
 }
