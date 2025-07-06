@@ -21,35 +21,13 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
 import axios from "axios";
 
-// Mock data - replace with your actual data fetching
-const groups = [
-  {
-    _id: "1",
-    name: "Roommates",
-    description: "Apartment expenses",
-    members: [
-      { _id: "101", name: "You", email: "you@example.com" },
-      { _id: "102", name: "Alex", email: "alex@example.com" },
-      { _id: "103", name: "Sam", email: "sam@example.com" },
-    ],
-  },
-  {
-    _id: "2",
-    name: "Trip to Goa",
-    description: "December vacation",
-    members: [
-      { _id: "101", name: "You", email: "you@example.com" },
-      { _id: "104", name: "Priya", email: "priya@example.com" },
-    ],
-  },
-];
-
 export default function Contacts() {
   const [contacts, setContacts] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("groups");
   const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
@@ -80,32 +58,29 @@ export default function Contacts() {
     }
   };
 
+  const fetchGroups = async () => {
+    try {
+      const response = await axios.get(
+        process.env.NEXT_PUBLIC_API_URL + "/group/get-groups",{
+          withCredentials: true, // Include cookies in the request
+        });
+      if (response.status === 200) {
+        setGroups(response.data);
+      } else {
+        toast.error(response.data?.message);
+      }
+    } catch (error) {
+      console.error("Error fetching groups:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchGroups();
+  }, []);
+
   useEffect(() => {
     fetchContacts();
   }, []);
-
-  // useEffect(() => {
-  //   const fetchGroups = async () => {
-  //     try {
-  //       const response = await axios.get(
-  //         process.env.NEXT_PUBLIC_API_URL + "/group/get-groups",
-  //         {
-  //           withCredentials: true, // Include cookies in the request
-  //         }
-  //       );
-  //       if (response.status === 200) {
-  //         // Assuming response.data is an array of groups
-  //         setGroups(response.data);
-  //       } else {
-  //         toast.error("Failed to fetch groups");
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching groups:", error);
-  //       toast.error("Failed to fetch groups");
-  //     }
-  //   };
-  //   fetchGroups();
-  // }, []);
 
   const filteredGroups = groups.filter((group) =>
     group.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -117,11 +92,27 @@ export default function Contacts() {
       contact.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleCreateGroup = () => {
+  const handleCreateGroup = async () => {
     // Add your API call here
-    toast.success(`Group "${newGroup.name}" created successfully`);
-    setIsCreateGroupOpen(false);
-    setNewGroup({ name: "", description: "", members: [] });
+    try {
+      const response = await axios.post(
+        process.env.NEXT_PUBLIC_API_URL + "/group/create-group",{
+          name: newGroup.name.trim(),
+          description: newGroup.description.trim(),
+          members: newGroup.members,
+        },
+        {
+          withCredentials: true, // Include cookies in the request
+        });
+      if (response.status === 200) {
+        toast.success("Group created successfully");
+        setIsCreateGroupOpen(false);
+        await fetchGroups();
+      }
+    } catch (error) {
+      console.error("Error creating group:", error);
+      toast.error(error.response?.data?.message);
+    }
   };
 
   const handleAddContact = async () => {

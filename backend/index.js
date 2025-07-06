@@ -1,6 +1,7 @@
 import e from "express";
 import UserRoute from "./routes/userRoutes.js";
 import contactRoute from "./routes/contactRoutes.js";
+import GroupRoute from "./routes/groupRoutes.js";
 import cors from "cors";
 import connectDB from "./utils/mongo.js";
 import cookieParser from 'cookie-parser';
@@ -17,6 +18,7 @@ app.use(cors({
 //routes
 app.use("/user",UserRoute);
 app.use("/contact",contactRoute);
+app.use("/groups", GroupRoute);
 
 //connect to MongoDB
 connectDB();
