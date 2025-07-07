@@ -61,9 +61,11 @@ export default function Contacts() {
   const fetchGroups = async () => {
     try {
       const response = await axios.get(
-        process.env.NEXT_PUBLIC_API_URL + "/group/get-groups",{
+        process.env.NEXT_PUBLIC_API_URL + "/groups/get-user-groups",
+        {
           withCredentials: true, // Include cookies in the request
-        });
+        }
+      );
       if (response.status === 200) {
         setGroups(response.data);
       } else {
@@ -93,25 +95,46 @@ export default function Contacts() {
   );
 
   const handleCreateGroup = async () => {
-    // Add your API call here
     try {
       const response = await axios.post(
-        process.env.NEXT_PUBLIC_API_URL + "/group/create-group",{
+        process.env.NEXT_PUBLIC_API_URL + "/groups/create-group",
+        {
           name: newGroup.name.trim(),
           description: newGroup.description.trim(),
-          members: newGroup.members,
+          emails: newGroup.members,
         },
         {
-          withCredentials: true, // Include cookies in the request
-        });
-      if (response.status === 200) {
-        toast.success("Group created successfully");
+          withCredentials: true,
+        }
+      );
+      console.log(response.data);
+
+      if (response.status === 200 || response.status === 201) {
+        // Close the dialog immediately
         setIsCreateGroupOpen(false);
+
+        // Show success toast after closing
+        setTimeout(() => {
+          toast.success("Group created successfully");
+        }, 100);
+
+        // Refresh groups after toast
         await fetchGroups();
+
+        // Reset new group form
+        setNewGroup({ name: "", description: "", members: [] });
+      } else {
+        setIsCreateGroupOpen(false);
+        setTimeout(() => {
+          toast.error(response.data?.message || "Failed to create group");
+        }, 100);
       }
     } catch (error) {
       console.error("Error creating group:", error);
-      toast.error(error.response?.data?.message);
+      setIsCreateGroupOpen(false);
+      setTimeout(() => {
+        toast.error(error.response?.data?.message || "Failed to create group");
+      }, 100);
     }
   };
 
@@ -253,7 +276,7 @@ export default function Contacts() {
                                 </div>
                                 <Button
                                   variant={
-                                    newGroup.members.includes(contact._id)
+                                    newGroup.members.includes(contact.email)
                                       ? "default"
                                       : "outline"
                                   }
@@ -262,16 +285,16 @@ export default function Contacts() {
                                     setNewGroup({
                                       ...newGroup,
                                       members: newGroup.members.includes(
-                                        contact._id
+                                        contact.email
                                       )
                                         ? newGroup.members.filter(
-                                            (id) => id !== contact._id
+                                            (e) => e !== contact.email
                                           )
-                                        : [...newGroup.members, contact._id],
+                                        : [...newGroup.members, contact.email],
                                     })
                                   }
                                 >
-                                  {newGroup.members.includes(contact._id)
+                                  {newGroup.members.includes(contact.email)
                                     ? "Added"
                                     : "Add"}
                                 </Button>
@@ -284,24 +307,25 @@ export default function Contacts() {
                     <div className="border rounded p-3 min-h-16">
                       {newGroup.members.length > 0 ? (
                         <div className="flex flex-wrap gap-2">
-                          {newGroup.members.map((memberId) => {
+                          {newGroup.members.map((email) => {
                             const member = contacts.find(
-                              (c) => c._id === memberId
+                              (c) => c.email === email
                             );
                             return (
                               <div
-                                key={memberId}
+                                key={email}
                                 className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full"
                               >
                                 <span className="text-sm">
-                                  {member?.name || "Unknown"}
+                                  {member?.name || email}{" "}
+                                  {/* Show name if found, otherwise show email */}
                                 </span>
                                 <button
                                   onClick={() =>
                                     setNewGroup({
                                       ...newGroup,
                                       members: newGroup.members.filter(
-                                        (id) => id !== memberId
+                                        (e) => e !== email
                                       ),
                                     })
                                   }

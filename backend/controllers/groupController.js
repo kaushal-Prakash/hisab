@@ -14,7 +14,7 @@ const createGroup = async (req, res) => {
 
     // Find users by their emails
     const invitedUsers = await User.find({ email: { $in: emails } });
-    const invitedUserIds = invitedUsers.map(u => u._id);
+    const invitedUserIds = invitedUsers.map((u) => u._id);
 
     // Create new group
     const newGroup = new Group({
@@ -40,7 +40,7 @@ const createGroup = async (req, res) => {
             email: req.user.email,
             imageUrl: req.user.imageUrl,
           },
-          ...invitedUsers.map(u => ({
+          ...invitedUsers.map((u) => ({
             id: u._id,
             name: u.name,
             email: u.email,
@@ -55,12 +55,10 @@ const createGroup = async (req, res) => {
   }
 };
 
-
 const deleteGroup = async (req, res) => {
   try {
     const { groupId } = req.body;
     const userId = req.user?._id; // Get user ID from request
-    console.log("User ID:", userId);
 
     // Validate input
     if (!groupId || !userId) {
@@ -87,7 +85,9 @@ const deleteGroup = async (req, res) => {
 
       // Update only if the user was actually in the group
       if (updatedMembers.length === group.members.length) {
-        return res.status(400).json({ message: "User is not a member of the group" });
+        return res
+          .status(400)
+          .json({ message: "User is not a member of the group" });
       }
 
       group.members = updatedMembers;
@@ -114,7 +114,7 @@ const deleteGroup = async (req, res) => {
 const addMember = async (req, res) => {
   try {
     const { groupId, newMemberEmail } = req.body;
-    const userId = req.user?._id; 
+    const userId = req.user?._id;
 
     // Validate input
     if (!groupId || !userId || !newMemberEmail) {
