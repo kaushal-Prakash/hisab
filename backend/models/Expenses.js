@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const expensesSchema = new mongoose.Schema({
-    groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group', required: true },
+    groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group' },
     paidByUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     amount: { type: Number, required: true },
     description: { type: String, required: true },
@@ -11,7 +11,7 @@ const expensesSchema = new mongoose.Schema({
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
     splitType: { type: String, enum: ['equal', 'unequal'], default: 'equal' },  
     splits: [{
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
         amount: { type: Number, required: true }
     }],
     createdAt: { type: Date, default: Date.now },

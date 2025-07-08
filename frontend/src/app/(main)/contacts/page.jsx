@@ -9,6 +9,7 @@ import {
   User,
   ChevronDown,
   Trash2,
+  IndianRupeeIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { use, useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
 import axios from "axios";
+import AddExpenseForm from "@/components/AddExpenseForm";
 
 export default function Contacts() {
   const [contacts, setContacts] = useState([]);
@@ -511,14 +513,42 @@ export default function Contacts() {
                             </p>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-500 hover:text-red-600"
-                          onClick={() => handleDeleteContact(contact._id)}
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </Button>
+                        <div className="flex gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-green-600 hover:text-green-700"
+                                title="Add expense"
+                              >
+                                <IndianRupeeIcon className="h-5 w-5" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>
+                                  Add Expense with {contact.name}
+                                </DialogTitle>
+                              </DialogHeader>
+                              <AddExpenseForm
+                                contact={contact}
+                                onSuccess={() => {
+                                  toast.success("Expense added successfully");
+                                }}
+                              />
+                            </DialogContent>
+                          </Dialog>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500 hover:text-red-600"
+                            onClick={() => handleDeleteContact(contact._id)}
+                            title="Delete contact"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
