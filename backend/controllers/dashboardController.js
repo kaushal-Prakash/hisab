@@ -1,4 +1,5 @@
 import Expenses from "../models/Expenses.js";
+import Group from "../models/Group.js";
 import Settlement from "../models/Settlements.js";
 
 const getDashboardData = async (req, res) => {
