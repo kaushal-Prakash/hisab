@@ -4,40 +4,60 @@ import Group from "../models/Group.js";
 
 const addExpense = async (req, res) => {
   try {
+    console.log("Adding expense with body:", req.body);
     const { amount, description, category, note, splits, groupId } = req.body;
     const userId = req.user._id;
-    console.log(req.body);
-    if (!amount || !description || !category || !splits) {
+
+    // Validate required fields
+    if (!amount || !description || !category || !splits || !Array.isArray(splits)) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // For 1:1 expenses, create a virtual split between the two users
-    let expenseData = {
+    // Validate splits structure
+    const invalidSplits = splits.some(split => 
+      !split._id || !split.amount || isNaN(split.amount)
+    );
+    
+    if (invalidSplits) {
+      return res.status(400).json({ 
+        message: "Each split must have a valid _id and amount" 
+      });
+    }
+
+    // Prepare expense data
+    const expenseData = {
       paidByUserId: userId,
-      amount,
+      amount: parseFloat(amount),
       description,
       category,
       note: note || "",
-      splitType: "equal",
-      splits,
+      splitType: splits.length > 1 ? "unequal" : "equal",
+      splits: splits.map(split => ({
+        _id: split._id,
+        amount: parseFloat(split.amount),
+        paid: split.paid || false
+      })),
       createdBy: userId,
+      groupId: groupId || null
     };
-
-    // If groupId is provided, add it to the expense
-    if (groupId) {
-      expenseData.groupId = groupId;
-    }
 
     const newExpense = new Expenses(expenseData);
     await newExpense.save();
 
+    // Populate the response with user details
+    const populatedExpense = await Expenses.findById(newExpense._id)
+      .populate('paidByUserId', 'name email imageUrl')
+      .populate('splits._id', 'name email imageUrl');
+
     return res.status(201).json({
       message: "Expense added successfully",
-      expense: newExpense,
+      expense: populatedExpense,
     });
   } catch (error) {
     console.error("Error adding expense:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ 
+      message: error.message || "Internal server error" 
+    });
   }
 };
 

@@ -2,7 +2,10 @@
 import React, { useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-const AddExpenseForm = ({ contact, onSuccess }) => {
+import { toast } from "sonner";
+import axios from "axios";
+
+const AddExpenseForm = ({ contact, onSuccess, onClose }) => {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("food");
@@ -11,11 +14,18 @@ const AddExpenseForm = ({ contact, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate amount
+    if (!amount){
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
     setIsLoading(true);
     
     try {
       const response = await axios.post(
-        process.env.NEXT_PUBLIC_API_URL + "/expenses/add-expense",
+        `${process.env.NEXT_PUBLIC_API_URL}/expenses/add-expense`,
         {
           amount: parseFloat(amount),
           description,
@@ -23,17 +33,20 @@ const AddExpenseForm = ({ contact, onSuccess }) => {
           note,
           splitType: "equal",
           splits: [
-            { userId: contact._id, amount: parseFloat(amount) / 2 }
+            { 
+              _id: contact._id, 
+              amount: parseFloat(amount) / 2 // Each pays half
+            }
           ],
-          // This will create a "virtual" group for 1:1 expenses
-          groupId: null,
-          paidByUserId: null // The backend should use the logged-in user as payer
+          paidByUserId: null // This should probably be the current user's ID
         },
         { withCredentials: true }
       );
 
       if (response.status === 200 || response.status === 201) {
-        onSuccess();
+        toast.success("Expense added successfully");
+        onSuccess(); // Refresh the expenses list
+        onClose(); // Close the form
       } else {
         toast.error(response.data?.message || "Failed to add expense");
       }
@@ -52,6 +65,7 @@ const AddExpenseForm = ({ contact, onSuccess }) => {
         <Input
           type="number"
           step="0.01"
+          min="0.01"
           placeholder="0.00"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
@@ -66,6 +80,7 @@ const AddExpenseForm = ({ contact, onSuccess }) => {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           required
+          maxLength={100}
         />
       </div>
       
@@ -75,6 +90,7 @@ const AddExpenseForm = ({ contact, onSuccess }) => {
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
+          required
         >
           <option value="food">Food & Dining</option>
           <option value="transport">Transportation</option>
@@ -91,11 +107,25 @@ const AddExpenseForm = ({ contact, onSuccess }) => {
           placeholder="Any additional details"
           value={note}
           onChange={(e) => setNote(e.target.value)}
+          maxLength={200}
         />
       </div>
       
-      <div className="pt-2">
-        <Button type="submit" className="w-full" disabled={isLoading}>
+      <div className="pt-2 flex flex-col gap-2">
+        <Button 
+          type="button" 
+          variant="outline" 
+          className="w-full" 
+          onClick={onClose}
+          disabled={isLoading}
+        >
+          Cancel
+        </Button>
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isLoading || !amount || !description}
+        >
           {isLoading ? "Adding..." : "Add Expense"}
         </Button>
       </div>

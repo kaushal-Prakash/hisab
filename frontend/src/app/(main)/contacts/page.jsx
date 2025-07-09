@@ -40,13 +40,15 @@ export default function Contacts() {
     members: [],
   });
   const [newContactEmail, setNewContactEmail] = useState("");
+  const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState(null);
 
   const fetchContacts = async () => {
     try {
       const response = await axios.get(
         process.env.NEXT_PUBLIC_API_URL + "/contact/get-contacts",
         {
-          withCredentials: true, // Include cookies in the request
+          withCredentials: true,
         }
       );
       if (response.status === 200) {
@@ -65,7 +67,7 @@ export default function Contacts() {
       const response = await axios.get(
         process.env.NEXT_PUBLIC_API_URL + "/groups/get-user-groups",
         {
-          withCredentials: true, // Include cookies in the request
+          withCredentials: true,
         }
       );
       if (response.status === 200) {
@@ -80,9 +82,6 @@ export default function Contacts() {
 
   useEffect(() => {
     fetchGroups();
-  }, []);
-
-  useEffect(() => {
     fetchContacts();
   }, []);
 
@@ -109,34 +108,20 @@ export default function Contacts() {
           withCredentials: true,
         }
       );
-      console.log(response.data);
 
       if (response.status === 200 || response.status === 201) {
-        // Close the dialog immediately
         setIsCreateGroupOpen(false);
-
-        // Show success toast after closing
-        setTimeout(() => {
-          toast.success("Group created successfully");
-        }, 100);
-
-        // Refresh groups after toast
+        toast.success("Group created successfully");
         await fetchGroups();
-
-        // Reset new group form
         setNewGroup({ name: "", description: "", members: [] });
       } else {
         setIsCreateGroupOpen(false);
-        setTimeout(() => {
-          toast.error(response.data?.message || "Failed to create group");
-        }, 100);
+        toast.error(response.data?.message || "Failed to create group");
       }
     } catch (error) {
       console.error("Error creating group:", error);
       setIsCreateGroupOpen(false);
-      setTimeout(() => {
-        toast.error(error.response?.data?.message || "Failed to create group");
-      }, 100);
+      toast.error(error.response?.data?.message || "Failed to create group");
     }
   };
 
@@ -149,15 +134,14 @@ export default function Contacts() {
           email,
         },
         {
-          withCredentials: true, // Include cookies in the request
+          withCredentials: true,
         }
       );
-      console.log(response.data);
-      if (response.status !== 200) {
-        toast.error(response.data.message);
-      } else {
+      if (response.status === 200) {
         toast.success(response.data.message);
-        await fetchContacts(); // Refresh contacts after adding
+        await fetchContacts();
+      } else {
+        toast.error(response.data.message);
       }
       setIsAddContactOpen(false);
       setNewContactEmail("");
@@ -175,7 +159,7 @@ export default function Contacts() {
           contactId,
         },
         {
-          withCredentials: true, // Include cookies in the request
+          withCredentials: true,
         }
       );
       if (response.status === 200) {
@@ -187,6 +171,11 @@ export default function Contacts() {
     } catch (error) {
       console.error("Error deleting contact:", error);
     }
+  };
+
+  const handleAddExpenseClick = (contact) => {
+    setSelectedContact(contact);
+    setExpenseDialogOpen(true);
   };
 
   return (
@@ -210,10 +199,7 @@ export default function Contacts() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Dialog
-              open={isCreateGroupOpen}
-              onOpenChange={setIsCreateGroupOpen}
-            >
+            <Dialog open={isCreateGroupOpen} onOpenChange={setIsCreateGroupOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2">
                   <Plus className="h-4 w-4" />
@@ -319,8 +305,7 @@ export default function Contacts() {
                                 className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full"
                               >
                                 <span className="text-sm">
-                                  {member?.name || email}{" "}
-                                  {/* Show name if found, otherwise show email */}
+                                  {member?.name || email}
                                 </span>
                                 <button
                                   onClick={() =>
@@ -514,13 +499,25 @@ export default function Contacts() {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Dialog>
+                          <Dialog 
+                            open={expenseDialogOpen && selectedContact?._id === contact._id}
+                            onOpenChange={(open) => {
+                              if (!open) {
+                                setExpenseDialogOpen(false);
+                                setSelectedContact(null);
+                              } else {
+                                setExpenseDialogOpen(true);
+                                setSelectedContact(contact);
+                              }
+                            }}
+                          >
                             <DialogTrigger asChild>
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="text-green-600 hover:text-green-700"
                                 title="Add expense"
+                                onClick={() => handleAddExpenseClick(contact)}
                               >
                                 <IndianRupeeIcon className="h-5 w-5" />
                               </Button>
@@ -535,6 +532,11 @@ export default function Contacts() {
                                 contact={contact}
                                 onSuccess={() => {
                                   toast.success("Expense added successfully");
+                                  setExpenseDialogOpen(false);
+                                }}
+                                onClose={() => {
+                                  setExpenseDialogOpen(false);
+                                  setSelectedContact(null);
                                 }}
                               />
                             </DialogContent>
