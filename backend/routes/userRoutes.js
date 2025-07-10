@@ -1,5 +1,5 @@
 import e from "express";
-import { changeName, changePassword, changePhoto, isAuthenticated, login, signout, signup } from "../controllers/userController.js";
+import { changeName, changePassword, changePhoto, getUser, isAuthenticated, login, signout, signup } from "../controllers/userController.js";
 import upload from "../middleware/upload.js";
 import authMiddleware from "../middleware/auth.js";
 import { createOtp, verifyOtp } from "../controllers/otpController.js";
@@ -14,5 +14,6 @@ router.get("/create-otp",authMiddleware,createOtp);
 router.post("/verify-otp",authMiddleware,verifyOtp);
 router.post("/change-photo",authMiddleware,upload, changePhoto);
 router.get("/is-authenticated",authMiddleware, isAuthenticated);
+router.get("/get-user",authMiddleware, getUser);
 
 export default router;

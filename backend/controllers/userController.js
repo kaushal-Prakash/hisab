@@ -254,6 +254,7 @@ const changePhoto = async (req, res) => {
     // Success response
     return res.status(200).json({
       message: "Photo updated successfully",
+      imageUrl : newPhotoUrl
     });
   } catch (error) {
     console.error("Change photo error:", error);
@@ -275,6 +276,15 @@ const isAuthenticated = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+const getUser = async (req,res) => {
+  try {
+    res.status(200).json({ user: req.user });
+  } catch (error) {
+    console.error("Get user error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
 export {
   signup,
   login,
@@ -283,4 +293,5 @@ export {
   changePassword,
   changePhoto,
   isAuthenticated,
+  getUser
 };
