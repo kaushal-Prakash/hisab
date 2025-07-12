@@ -4,7 +4,6 @@ import Group from "../models/Group.js";
 
 const addExpense = async (req, res) => {
   try {
-    console.log("Adding expense with body:", req.body);
     const { amount, description, category, note, splits, groupId } = req.body;
     const userId = req.user._id;
 
