@@ -1,11 +1,13 @@
 import mongoose from "mongoose";
 
+//settlements : Payments made specifically to reduce debt between users.
+
 const settlementSchema = new mongoose.Schema(
   {
     groupId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Group",
-      required: [true, "Group ID is required"],
+      required: [false, "Group ID is optional"],
       index: true, // Added index for better query performance
     },
     paidByUserId: {

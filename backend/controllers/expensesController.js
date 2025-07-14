@@ -476,7 +476,7 @@ const getExpensesBetweenUsers = async (req, res) => {
       return meInvolved && themInvolved;
     });
 
-    expenses.sort((a, b) => b.createdAt - a.createdAt);
+    expenses.sort((a, b) => b.createdAt - a.createdAt); //Sorts the expenses array in descending order based on the createdAt timestamp.
 
     // 3. Get settlements between the two users
     const settlements = await Settlement.find({
@@ -485,7 +485,7 @@ const getExpensesBetweenUsers = async (req, res) => {
         { paidByUserId: me, receivedByUserId: userId },
         { paidByUserId: userId, receivedByUserId: me }
       ]
-    }).sort({ createdAt: -1 });
+    }).sort({ createdAt: -1 }); //sorts by createdAt in descending orde
 
     // 4. Compute running balance
     let balance = 0;
