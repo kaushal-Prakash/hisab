@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -10,23 +10,40 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import axios from "axios";
+import { toast } from "sonner";
+import { format } from "date-fns";
 
 export default function PersonalExpensesPage() {
   const params = useParams();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("expenses");
+  const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState({
+    expenses: [],
+    settlements: [],
+    otherUser: null,
+    balance: 0
+  });
 
-  // Mock data - replace with your actual data fetching
-  const isLoading = false;
-  const otherUser = {
-    id: params.id,
-    name: "John Doe",
-    email: "john@example.com",
-    imageUrl: "",
-  };
-  const expenses = [];
-  const settlements = [];
-  const balance = 0;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/contact/contact/${params.userId}`,
+          { withCredentials: true }
+        );
+        setData(response.data);
+      } catch (error) {
+        toast.error("Failed to fetch data");
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [params.id]);
 
   if (isLoading) {
     return (
@@ -67,14 +84,14 @@ export default function PersonalExpensesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between mb-6">
         <div className="flex items-center gap-3">
           <Avatar className="h-16 w-16">
-            <AvatarImage src={otherUser?.imageUrl} />
+            <AvatarImage src={data.otherUser?.imageUrl} />
             <AvatarFallback>
-              {otherUser?.name?.charAt(0) || "?"}
+              {data.otherUser?.name?.charAt(0) || "?"}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-2xl font-bold">{otherUser?.name}</h1>
-            <p className="text-muted-foreground">{otherUser?.email}</p>
+            <h1 className="text-2xl font-bold">{data.otherUser?.name}</h1>
+            <p className="text-muted-foreground">{data.otherUser?.email}</p>
           </div>
         </div>
 
@@ -101,23 +118,23 @@ export default function PersonalExpensesPage() {
         <CardContent>
           <div className="flex justify-between items-center">
             <div>
-              {balance === 0 ? (
+              {data.balance === 0 ? (
                 <p>You are all settled up</p>
-              ) : balance > 0 ? (
+              ) : data.balance > 0 ? (
                 <p>
-                  <span className="font-medium">{otherUser?.name}</span> owes
+                  <span className="font-medium">{data.otherUser?.name}</span> owes
                   you
                 </p>
               ) : (
                 <p>
-                  You owe <span className="font-medium">{otherUser?.name}</span>
+                  You owe <span className="font-medium">{data.otherUser?.name}</span>
                 </p>
               )}
             </div>
             <div
-              className={`text-xl font-bold ${balance > 0 ? "text-green-600" : balance < 0 ? "text-red-600" : ""}`}
+              className={`text-xl font-bold ${data.balance > 0 ? "text-green-600" : data.balance < 0 ? "text-red-600" : ""}`}
             >
-              ${Math.abs(balance).toFixed(2)}
+              ₹{Math.abs(data.balance).toFixed(2)}
             </div>
           </div>
         </CardContent>
@@ -134,17 +151,70 @@ export default function PersonalExpensesPage() {
         </TabsList>
 
         <TabsContent value="expenses" className="space-y-4">
-          {/* Replace with your expense list component */}
-          <div className="text-center text-muted-foreground py-8">
-            No expenses yet
-          </div>
+          {data.expenses.length > 0 ? (
+            data.expenses.map((expense) => (
+              <Card key={expense._id}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-medium">{expense.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(expense.createdAt), 'MMM dd, yyyy')}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">₹{expense.amount.toFixed(2)}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {expense.paidByUserId._id === data.otherUser.id ? 
+                          `${data.otherUser.name} paid` : 
+                          "You paid"}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <div className="text-center text-muted-foreground py-8">
+              No expenses yet
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="settlements" className="space-y-4">
-          {/* Replace with your settlement list component */}
-          <div className="text-center text-muted-foreground py-8">
-            No settlements yet
-          </div>
+          {data.settlements.length > 0 ? (
+            data.settlements.map((settlement) => (
+              <Card key={settlement._id}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-medium">Settlement</p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(settlement.createdAt), 'MMM dd, yyyy')}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className={`font-medium ${
+                        settlement.paidByUserId._id === data.otherUser.id ? 
+                        "text-green-600" : "text-red-600"
+                      }`}>
+                        ₹{settlement.amount.toFixed(2)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {settlement.paidByUserId._id === data.otherUser.id ? 
+                          `${data.otherUser.name} paid you` : 
+                          "You paid"}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <div className="text-center text-muted-foreground py-8">
+              No settlements yet
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </motion.div>
