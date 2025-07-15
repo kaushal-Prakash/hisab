@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Expenses from "../models/Expenses.js";
 import Settlement from "../models/Settlements.js";
 import Group from "../models/Group.js";
+import User from "../models/User.js";
 
 const addExpense = async (req, res) => {
   try {

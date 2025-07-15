@@ -26,8 +26,10 @@ import { use, useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
 import axios from "axios";
 import AddExpenseForm from "@/components/AddExpenseForm";
+import { useRouter } from "next/navigation";
 
 export default function Contacts() {
+  const router = useRouter();
   const [contacts, setContacts] = useState([]);
   const [groups, setGroups] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -94,6 +96,10 @@ export default function Contacts() {
       contact?.name &&
       contact.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleRedirectToContactPage = (contactId) => {
+    router.push(`/contacts/${contactId}`);
+  };
 
   const handleCreateGroup = async () => {
     try {
@@ -247,7 +253,10 @@ export default function Contacts() {
                                 key={contact._id}
                                 className="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
                               >
-                                <div className="flex items-center gap-3">
+                                <button 
+                                  className="flex items-center gap-3 w-full text-left"
+                                  onClick={() => handleRedirectToContactPage(contact._id)}
+                                >
                                   <Avatar>
                                     <AvatarFallback>
                                       {contact.name?.charAt(0)}
@@ -261,7 +270,7 @@ export default function Contacts() {
                                       {contact.email}
                                     </p>
                                   </div>
-                                </div>
+                                </button>
                                 <Button
                                   variant={
                                     newGroup.members.includes(contact.email)
@@ -269,7 +278,8 @@ export default function Contacts() {
                                       : "outline"
                                   }
                                   size="sm"
-                                  onClick={() =>
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     setNewGroup({
                                       ...newGroup,
                                       members: newGroup.members.includes(
@@ -280,7 +290,7 @@ export default function Contacts() {
                                           )
                                         : [...newGroup.members, contact.email],
                                     })
-                                  }
+                                  }}
                                 >
                                   {newGroup.members.includes(contact.email)
                                     ? "Added"
@@ -485,7 +495,10 @@ export default function Contacts() {
                   <Card>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                        <button 
+                          className="flex items-center gap-4 w-full text-left"
+                          onClick={() => handleRedirectToContactPage(contact._id)}
+                        >
                           <Avatar>
                             <AvatarFallback>
                               {contact.name.charAt(0)}
@@ -497,7 +510,7 @@ export default function Contacts() {
                               {contact.email}
                             </p>
                           </div>
-                        </div>
+                        </button>
                         <div className="flex gap-2">
                           <Dialog 
                             open={expenseDialogOpen && selectedContact?._id === contact._id}
@@ -517,7 +530,10 @@ export default function Contacts() {
                                 size="icon"
                                 className="text-green-600 hover:text-green-700"
                                 title="Add expense"
-                                onClick={() => handleAddExpenseClick(contact)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddExpenseClick(contact);
+                                }}
                               >
                                 <IndianRupeeIcon className="h-5 w-5" />
                               </Button>
@@ -545,7 +561,10 @@ export default function Contacts() {
                             variant="ghost"
                             size="icon"
                             className="text-red-500 hover:text-red-600"
-                            onClick={() => handleDeleteContact(contact._id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteContact(contact._id);
+                            }}
                             title="Delete contact"
                           >
                             <Trash2 className="h-5 w-5" />
