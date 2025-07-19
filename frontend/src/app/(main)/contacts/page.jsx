@@ -184,6 +184,10 @@ export default function Contacts() {
     setExpenseDialogOpen(true);
   };
 
+  const handleGroupRedirection = (group) => () => {
+    router.push(`/groups/${group._id}`);
+  }
+
   return (
     <div className="container mx-auto py-8 px-4">
       <motion.div
@@ -429,9 +433,6 @@ export default function Contacts() {
                             {group.members.length} members
                           </p>
                         </div>
-                        <Button variant="ghost" size="sm">
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
                       </div>
                       <p className="text-sm text-gray-500">
                         {group.description}
@@ -457,8 +458,8 @@ export default function Contacts() {
                           </Avatar>
                         )}
                       </div>
-                      <div className="mt-4">
-                        <Button variant="outline" className="w-full">
+                      <div className="mt-4 cursor-pointer">
+                        <Button onClick={handleGroupRedirection(group)} variant="outline" className="w-full cursor-pointer">
                           View Group
                         </Button>
                       </div>
