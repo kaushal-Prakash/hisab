@@ -8,7 +8,7 @@ const expensesSchema = new mongoose.Schema({
     note: { type: String, default: "" },
     category: { type: String, required: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
-    splitType: { type: String, enum: ['equal', 'unequal', 'percentage'], default: 'equal' },  
+    splitType: { type: String, enum: ['equal', 'unequal'], default: 'equal' },  
     splits: [{
         _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
         amount: { type: Number, required: true }

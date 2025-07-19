@@ -6,59 +6,107 @@ import User from "../models/User.js";
 
 const addExpense = async (req, res) => {
   try {
-    const { amount, description, category, note, splits, groupId, paidByUserId } = req.body;
+    const { amount, description, category, note, splitType, splits, groupId, paidByUserId } = req.body;
     const userId = req.user._id;
 
-    // ===== VALIDATION (Combined both approaches) =====
-    // Required fields check (your original)
-    if (!amount || !description || !category || !splits || !Array.isArray(splits)) {
+    // ===== VALIDATION =====
+    // Required fields check
+    if (!amount || !description || !category || !paidByUserId || !splitType) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Split structure validation (your original)
-    const invalidSplits = splits.some(split => 
-      !split._id || !split.amount || isNaN(split.amount)
-    );
-    if (invalidSplits) {
-      return res.status(400).json({ 
-        message: "Each split must have a valid _id and amount" 
-      });
+    // Validate amount is a positive number
+    if (isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ message: "Amount must be a positive number" });
     }
 
-    // Convex-style split sum validation
-    const totalSplitAmount = splits.reduce((sum, split) => sum + split.amount, 0);
-    if (Math.abs(totalSplitAmount - amount) > 0.01) {
-      return res.status(400).json({ 
-        message: "Split amounts must equal total amount" 
-      });
+    // Validate splitType
+    if (!['equal', 'unequal', 'percentage'].includes(splitType)) {
+      return res.status(400).json({ message: "Invalid split type" });
     }
 
-    // Convex-style group membership check
+    // Group membership check if group expense
     if (groupId) {
       const group = await Group.findById(groupId);
-      if (!group?.members.includes(userId)) {
-        return res.status(403).json({ 
-          message: "Not a group member" 
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+      
+      // Verify current user is group member
+      if (!group.members.includes(userId)) {
+        return res.status(403).json({ message: "Not a group member" });
+      }
+      
+      // Verify payer is group member
+      if (!group.members.includes(paidByUserId)) {
+        return res.status(400).json({ message: "Payer must be a group member" });
+      }
+    }
+
+    // ===== SPLIT VALIDATION =====
+    let finalSplits = [];
+    
+    if (splitType === 'equal') {
+      // For equal splits, we need the member list
+      if (!groupId) {
+        return res.status(400).json({ message: "Group ID required for equal splits" });
+      }
+      
+      const group = await Group.findById(groupId);
+      const amountPerPerson = amount / group.members.length;
+      
+      finalSplits = group.members.map(member => ({
+        _id: member._id,
+        amount: parseFloat(amountPerPerson.toFixed(2))
+      }));
+    } 
+    else if (splitType === 'unequal') {
+      // Validate unequal splits
+      if (!splits || !Array.isArray(splits)) {
+        return res.status(400).json({ message: "Split details required for unequal split" });
+      }
+
+      // Check all split amounts are valid
+      const invalidSplits = splits.some(split => 
+        !split.userId || isNaN(split.amount) || split.amount < 0
+      );
+      
+      if (invalidSplits) {
+        return res.status(400).json({ 
+          message: "Each split must have a valid userId and positive amount" 
         });
       }
+
+      // Check total matches expense amount
+      const totalSplitAmount = splits.reduce((sum, split) => sum + parseFloat(split.amount), 0);
+      
+      if (Math.abs(totalSplitAmount - amount) > 0.01) {
+        return res.status(400).json({ 
+          message: `Split amounts (${totalSplitAmount}) must equal total amount (${amount})` 
+        });
+      }
+
+      finalSplits = splits.map(split => ({
+        _id: split.userId,
+        amount: parseFloat(split.amount)
+      }));
+    }
+    else if (splitType === 'percentage') {
+      // Percentage split logic would go here
+      return res.status(400).json({ message: "Percentage split not yet implemented" });
     }
 
     // ===== DATA PREPARATION =====
     const expenseData = {
-      paidByUserId: paidByUserId || userId, // Your original default
-      amount: Number(amount),
+      paidByUserId,
+      amount: parseFloat(amount),
       description,
-      category: category || "Other", // Convex default
-      note: note || "", // Your original field
-      splitType: splits.length > 1 ? "unequal" : "equal", // Your original logic
-      splits: splits.map(split => ({
-        _id: split._id, // Your schema uses _id
-        amount: Number(split.amount),
-        // paid: split.paid || false // Add if you want Convex behavior
-      })),
+      category,
+      note: note || "",
+      splitType,
+      splits: finalSplits,
       createdBy: userId,
       groupId: groupId || null,
-      // createdAt is automatic in your schema
     };
 
     // ===== DATABASE OPERATION =====
@@ -73,6 +121,7 @@ const addExpense = async (req, res) => {
       message: "Expense added successfully",
       expense: populatedExpense,
     });
+
   } catch (error) {
     console.error("Error adding expense:", error);
     return res.status(500).json({ 

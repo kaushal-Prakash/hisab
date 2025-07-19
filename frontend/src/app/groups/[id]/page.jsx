@@ -14,6 +14,7 @@ import { BarLoader } from "react-spinners";
 import axios from "axios";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { AddExpenseForm } from "@/components/ExpenseForm";
 
 export default function GroupPage() {
   const params = useParams();
@@ -23,29 +24,28 @@ export default function GroupPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState(null);
   const [userBalance, setUserBalance] = useState(null);
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/groups/get-group-expenses/${params.id}`,
+        { withCredentials: true }
+      );
+      setData(response.data);
+
+      const currentUserId = "68668b8ec0c26e4cf0083d95";
+      const userBal = response.data.balances.find(
+        (b) => b.id === currentUserId
+      );
+      setUserBalance(userBal || null);
+    } catch (error) {
+      toast.error("Failed to fetch group data");
+      console.error("Error fetching group data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/groups/get-group-expenses/${params.id}`,
-          { withCredentials: true }
-        );
-        setData(response.data);
-
-        const currentUserId = "68668b8ec0c26e4cf0083d95";
-        const userBal = response.data.balances.find(
-          (b) => b.id === currentUserId
-        );
-        setUserBalance(userBal || null);
-      } catch (error) {
-        toast.error("Failed to fetch group data");
-        console.error("Error fetching group data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchData();
   }, [params.id]);
 
@@ -326,12 +326,7 @@ export default function GroupPage() {
               Settle up
             </Link>
           </Button>
-          <Button asChild>
-            <Link href={`/expenses/new?groupId=${data.group.id}`}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add expense
-            </Link>
-          </Button>
+          <AddExpenseForm group={data} />
         </div>
       </div>
 
