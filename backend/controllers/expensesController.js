@@ -6,7 +6,16 @@ import User from "../models/User.js";
 
 const addExpense = async (req, res) => {
   try {
-    const { amount, description, category, note, splitType, splits, groupId, paidByUserId } = req.body;
+    const {
+      amount,
+      description,
+      category,
+      note,
+      splitType,
+      splits,
+      groupId,
+      paidByUserId,
+    } = req.body;
     const userId = req.user._id;
 
     // ===== VALIDATION =====
@@ -17,11 +26,13 @@ const addExpense = async (req, res) => {
 
     // Validate amount is a positive number
     if (isNaN(amount) || amount <= 0) {
-      return res.status(400).json({ message: "Amount must be a positive number" });
+      return res
+        .status(400)
+        .json({ message: "Amount must be a positive number" });
     }
 
     // Validate splitType
-    if (!['equal', 'unequal', 'percentage'].includes(splitType)) {
+    if (!["equal", "unequal"].includes(splitType)) {
       return res.status(400).json({ message: "Invalid split type" });
     }
 
@@ -31,69 +42,78 @@ const addExpense = async (req, res) => {
       if (!group) {
         return res.status(404).json({ message: "Group not found" });
       }
-      
+
       // Verify current user is group member
       if (!group.members.includes(userId)) {
         return res.status(403).json({ message: "Not a group member" });
       }
-      
+
       // Verify payer is group member
       if (!group.members.includes(paidByUserId)) {
-        return res.status(400).json({ message: "Payer must be a group member" });
+        return res
+          .status(400)
+          .json({ message: "Payer must be a group member" });
       }
     }
 
     // ===== SPLIT VALIDATION =====
     let finalSplits = [];
-    
-    if (splitType === 'equal') {
+
+    if (splitType === "equal") {
       // For equal splits, we need the member list
       if (!groupId) {
-        return res.status(400).json({ message: "Group ID required for equal splits" });
+        return res
+          .status(400)
+          .json({ message: "Group ID required for equal splits" });
       }
-      
+
       const group = await Group.findById(groupId);
       const amountPerPerson = amount / group.members.length;
-      
-      finalSplits = group.members.map(member => ({
+
+      finalSplits = group.members.map((member) => ({
         _id: member._id,
-        amount: parseFloat(amountPerPerson.toFixed(2))
+        amount: parseFloat(amountPerPerson.toFixed(2)),
       }));
-    } 
-    else if (splitType === 'unequal') {
+    } else if (splitType === "unequal") {
       // Validate unequal splits
       if (!splits || !Array.isArray(splits)) {
-        return res.status(400).json({ message: "Split details required for unequal split" });
+        return res
+          .status(400)
+          .json({ message: "Split details required for unequal split" });
       }
 
       // Check all split amounts are valid
-      const invalidSplits = splits.some(split => 
-        !split.userId || isNaN(split.amount) || split.amount < 0
+      const invalidSplits = splits.some(
+        (split) => !split.userId || isNaN(split.amount) || split.amount < 0
       );
-      
+
       if (invalidSplits) {
-        return res.status(400).json({ 
-          message: "Each split must have a valid userId and positive amount" 
+        return res.status(400).json({
+          message: "Each split must have a valid userId and positive amount",
         });
       }
 
       // Check total matches expense amount
-      const totalSplitAmount = splits.reduce((sum, split) => sum + parseFloat(split.amount), 0);
-      
+      const totalSplitAmount = splits.reduce(
+        (sum, split) => sum + parseFloat(split.amount),
+        0
+      );
+
       if (Math.abs(totalSplitAmount - amount) > 0.01) {
-        return res.status(400).json({ 
-          message: `Split amounts (${totalSplitAmount}) must equal total amount (${amount})` 
+        return res.status(400).json({
+          message: `Split amounts (${totalSplitAmount}) must equal total amount (${amount})`,
         });
       }
 
-      finalSplits = splits.map(split => ({
+      finalSplits = splits.map((split) => ({
         _id: split.userId,
-        amount: parseFloat(split.amount)
+        amount: parseFloat(split.amount),
       }));
-    }
-    else if (splitType === 'percentage') {
+    } else if (splitType === "percentage") {
       // Percentage split logic would go here
-      return res.status(400).json({ message: "Percentage split not yet implemented" });
+      return res
+        .status(400)
+        .json({ message: "Percentage split not yet implemented" });
     }
 
     // ===== DATA PREPARATION =====
@@ -114,18 +134,19 @@ const addExpense = async (req, res) => {
     await newExpense.save();
 
     // ===== RESPONSE =====
-    const populatedExpense = await Expenses.findById(newExpense._id)
-      .populate('paidByUserId splits._id', 'name email imageUrl');
+    const populatedExpense = await Expenses.findById(newExpense._id).populate(
+      "paidByUserId splits._id",
+      "name email imageUrl"
+    );
 
     return res.status(201).json({
       message: "Expense added successfully",
       expense: populatedExpense,
     });
-
   } catch (error) {
     console.error("Error adding expense:", error);
-    return res.status(500).json({ 
-      message: error.message || "Internal server error" 
+    return res.status(500).json({
+      message: error.message || "Internal server error",
     });
   }
 };
@@ -163,22 +184,11 @@ const getGroupExpenses = async (req, res) => {
 
 const getPersonalExpenses = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = mongoose.Types.ObjectId(req.user._id);
 
-    // Get expenses where:
-    // 1. There's no group (personal expenses)
-    // 2. The current user is either payer or involved in splits
     const expenses = await Expenses.find({
-      $or: [
-        {
-          groupId: null,
-          paidByUserId: userId,
-        },
-        {
-          groupId: null,
-          "splits._id": userId,
-        },
-      ],
+      groupId: null,
+      $or: [{ paidByUserId: userId }, { "splits._id": userId }],
     })
       .populate("paidByUserId", "name email imageUrl")
       .populate("splits._id", "name email imageUrl")
@@ -496,29 +506,48 @@ const settleUp = async (req, res) => {
 
 const getExpensesBetweenUsers = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const me = req.user._id;
+    const me = new mongoose.Types.ObjectId(req.user._id);
+    const userId = new mongoose.Types.ObjectId(req.params.userId);
 
     if (me.equals(userId)) {
       return res.status(400).json({ message: "Cannot query yourself" });
     }
 
-    // 1. Get one-on-one expenses where either user is the payer
-    const myPaid = await Expenses.find({
+    // 1. Fetch all personal expenses where either is involved
+    const expenses = await Expenses.find({
       groupId: null,
-      paidByUserId: me
-    }).populate('paidByUserId splits._id', 'name email imageUrl');
+      $or: [
+        // Case 1: I paid and the other user is in splits (or I split with myself)
+        {
+          paidByUserId: me,
+          $or: [
+            { "splits._id": userId },
+            { "splits._id": me }, // Include self-splits
+          ],
+        },
+        // Case 2: Other user paid and I'm in splits (or they split with themselves)
+        {
+          paidByUserId: userId,
+          $or: [
+            { "splits._id": me },
+            { "splits._id": userId }, // Include self-splits
+          ],
+        },
+        // Case 3: Either paid and both are in splits
+        {
+          $or: [{ paidByUserId: me }, { paidByUserId: userId }],
+          "splits._id": { $all: [me, userId] },
+        },
+      ],
+    })
+      .populate("paidByUserId", "name email imageUrl")
+      .populate("splits._id", "name email imageUrl")
+      .sort({ createdAt: -1 });
 
-    const theirPaid = await Expenses.find({
-      groupId: null,
-      paidByUserId: userId
-    }).populate('paidByUserId splits._id', 'name email imageUrl');
-
-    // 2. Filter to only include expenses where both are involved
-    const candidateExpenses = [...myPaid, ...theirPaid];
-    const expenses = candidateExpenses.filter(expense => {
-      const meInSplits = expense.splits.some(s => s._id.equals(me));
-      const themInSplits = expense.splits.some(s => s._id.equals(userId));
+    // 2. Filter to expenses where both are involved
+    const filteredExpenses = expenses.filter((expense) => {
+      const meInSplits = expense.splits.some((s) => s._id.equals(me));
+      const themInSplits = expense.splits.some((s) => s._id.equals(userId));
 
       const meInvolved = expense.paidByUserId.equals(me) || meInSplits;
       const themInvolved = expense.paidByUserId.equals(userId) || themInSplits;
@@ -526,63 +555,60 @@ const getExpensesBetweenUsers = async (req, res) => {
       return meInvolved && themInvolved;
     });
 
-    expenses.sort((a, b) => b.createdAt - a.createdAt); //Sorts the expenses array in descending order based on the createdAt timestamp.
-
     // 3. Get settlements between the two users
     const settlements = await Settlement.find({
       groupId: null,
       $or: [
         { paidByUserId: me, receivedByUserId: userId },
-        { paidByUserId: userId, receivedByUserId: me }
-      ]
-    }).sort({ createdAt: -1 }); //sorts by createdAt in descending orde
+        { paidByUserId: userId, receivedByUserId: me },
+      ],
+    }).sort({ createdAt: -1 });
 
-    // 4. Compute running balance
+    // 4. Calculate balance
     let balance = 0;
 
-    for (const e of expenses) {
-      if (e.paidByUserId.equals(me)) {
-        // Check if there's a related settlement that might have paid this
-        const hasSettlement = settlements.some(s => 
-          s.relatedExpenseId && s.relatedExpenseId.equals(e._id)
-        );
-        
-        if (!hasSettlement) {
-          const split = e.splits.find(s => s._id.equals(userId));
-          if (split) balance += split.amount; // they owe me
+    for (const e of filteredExpenses) {
+      const hasSettlement = settlements.some(
+        (s) => s.relatedExpenseId && s.relatedExpenseId.equals(e._id)
+      );
+
+      if (!hasSettlement) {
+        if (e.paidByUserId.equals(me)) {
+          const split = e.splits.find((s) => s._id.equals(userId));
+          if (split) balance += split.amount;
+        } else {
+          const split = e.splits.find((s) => s._id.equals(me));
+          if (split) balance -= split.amount;
         }
-      } else {
-        const split = e.splits.find(s => s._id.equals(me));
-        if (split) balance -= split.amount; // I owe them
       }
     }
 
     for (const s of settlements) {
       if (s.paidByUserId.equals(me)) {
-        balance += s.amount; // I paid them back
+        balance += s.amount;
       } else {
-        balance -= s.amount; // they paid me back
+        balance -= s.amount;
       }
     }
 
-    // 5. Get other user details
-    const other = await User.findById(userId, 'name email imageUrl');
+    // 5. Get user details
+    const other = await User.findById(userId, "name email imageUrl");
     if (!other) {
       return res.status(404).json({ message: "User not found" });
     }
 
     return res.status(200).json({
-      expenses,
+      user: me,
+      expenses: filteredExpenses,
       settlements,
       otherUser: {
         id: other._id,
         name: other.name,
         email: other.email,
-        imageUrl: other.imageUrl
+        imageUrl: other.imageUrl,
       },
-      balance
+      balance,
     });
-
   } catch (error) {
     console.error("Error getting expenses between users:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -598,5 +624,5 @@ export {
   deleteExpense,
   calculateBalances,
   settleUp,
-  getExpensesBetweenUsers
+  getExpensesBetweenUsers,
 };

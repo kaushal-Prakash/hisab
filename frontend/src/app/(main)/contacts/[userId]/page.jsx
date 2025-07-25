@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import axios from "axios";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import ContactPageForm from "@/components/ContactPageForm";
 
 export default function PersonalExpensesPage() {
   const params = useParams();
@@ -23,7 +24,7 @@ export default function PersonalExpensesPage() {
     expenses: [],
     settlements: [],
     otherUser: null,
-    balance: 0
+    balance: 0,
   });
 
   useEffect(() => {
@@ -102,12 +103,25 @@ export default function PersonalExpensesPage() {
               Settle up
             </Link>
           </Button>
-          <Button asChild>
-            <Link href={`/expenses/new`}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add expense
-            </Link>
-          </Button>
+          <ContactPageForm
+            otherUser={data.otherUser}
+            currentUserId={data.user}
+            onExpenseAdded={() => {
+              // Refresh data after adding expense
+              const fetchData = async () => {
+                try {
+                  const response = await axios.get(
+                    `${process.env.NEXT_PUBLIC_API_URL}/contact/contact/${params.userId}`,
+                    { withCredentials: true }
+                  );
+                  setData(response.data);
+                } catch (error) {
+                  console.error("Error refreshing data:", error);
+                }
+              };
+              fetchData();
+            }}
+          />
         </div>
       </div>
 
@@ -122,17 +136,24 @@ export default function PersonalExpensesPage() {
                 <p>You are all settled up</p>
               ) : data.balance > 0 ? (
                 <p>
-                  <span className="font-medium">{data.otherUser?.name}</span> owes
-                  you
+                  <span className="font-medium">{data.otherUser?.name}</span>{" "}
+                  owes you
                 </p>
               ) : (
                 <p>
-                  You owe <span className="font-medium">{data.otherUser?.name}</span>
+                  You owe{" "}
+                  <span className="font-medium">{data.otherUser?.name}</span>
                 </p>
               )}
             </div>
             <div
-              className={`text-xl font-bold ${data.balance > 0 ? "text-green-600" : data.balance < 0 ? "text-red-600" : ""}`}
+              className={`text-xl font-bold ${
+                data.balance > 0
+                  ? "text-green-600"
+                  : data.balance < 0
+                  ? "text-red-600"
+                  : ""
+              }`}
             >
               ₹{Math.abs(data.balance).toFixed(2)}
             </div>
@@ -159,15 +180,17 @@ export default function PersonalExpensesPage() {
                     <div>
                       <p className="font-medium">{expense.description}</p>
                       <p className="text-sm text-muted-foreground">
-                        {format(new Date(expense.createdAt), 'MMM dd, yyyy')}
+                        {format(new Date(expense.createdAt), "MMM dd, yyyy")}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">₹{expense.amount.toFixed(2)}</p>
+                      <p className="font-medium">
+                        ₹{expense.amount.toFixed(2)}
+                      </p>
                       <p className="text-sm text-muted-foreground">
-                        {expense.paidByUserId._id === data.otherUser.id ? 
-                          `${data.otherUser.name} paid` : 
-                          "You paid"}
+                        {expense.paidByUserId._id === data.otherUser.id
+                          ? `${data.otherUser.name} paid`
+                          : "You paid"}
                       </p>
                     </div>
                   </div>
@@ -190,20 +213,23 @@ export default function PersonalExpensesPage() {
                     <div>
                       <p className="font-medium">Settlement</p>
                       <p className="text-sm text-muted-foreground">
-                        {format(new Date(settlement.createdAt), 'MMM dd, yyyy')}
+                        {format(new Date(settlement.createdAt), "MMM dd, yyyy")}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className={`font-medium ${
-                        settlement.paidByUserId._id === data.otherUser.id ? 
-                        "text-green-600" : "text-red-600"
-                      }`}>
+                      <p
+                        className={`font-medium ${
+                          settlement.paidByUserId._id === data.otherUser.id
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
                         ₹{settlement.amount.toFixed(2)}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {settlement.paidByUserId._id === data.otherUser.id ? 
-                          `${data.otherUser.name} paid you` : 
-                          "You paid"}
+                        {settlement.paidByUserId._id === data.otherUser.id
+                          ? `${data.otherUser.name} paid you`
+                          : "You paid"}
                       </p>
                     </div>
                   </div>

@@ -497,7 +497,7 @@ export default function Contacts() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <button 
-                          className="flex items-center gap-4 w-full text-left"
+                          className="flex cursor-pointer hover:brightness-95 items-center gap-4 w-full text-left"
                           onClick={() => handleRedirectToContactPage(contact._id)}
                         >
                           <Avatar>
