@@ -88,6 +88,10 @@ export default function GroupPage() {
     return <div className="container mx-auto py-12">Group not found</div>;
   }
 
+  const handleExpenseAdded = () => {
+  fetchData(); // This will re-fetch all group data
+};
+
   // Expense List Component
   const ExpenseList = ({ expenses, userLookupMap }) => {
     if (expenses.length === 0) {
@@ -234,7 +238,8 @@ export default function GroupPage() {
               Settle up
             </Link>
           </Button>
-          <AddExpenseForm group={data} />
+
+<AddExpenseForm group={data} onExpenseAdded={handleExpenseAdded} />
         </div>
       </div>
 

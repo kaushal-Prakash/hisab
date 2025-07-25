@@ -38,7 +38,7 @@ const SPLIT_TYPES = [
   { value: "unequal", label: "Unequal" },
 ];
 
-export function AddExpenseForm({ group }) {
+export function AddExpenseForm({ group, onExpenseAdded }) {
     const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -222,7 +222,7 @@ export function AddExpenseForm({ group }) {
       console.log("Response:", response.status);
       if(response.status === 201) {
         toast.success("Expense added successfully");
-        router.push(`/groups/${group.group.id}`); // To refresh the page to reflect changes
+        onExpenseAdded(); // Call the parent function to refresh expenses
       }else{
         toast.error(response.data.message);
       }
