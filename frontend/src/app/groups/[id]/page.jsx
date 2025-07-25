@@ -15,6 +15,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { AddExpenseForm } from "@/components/ExpenseForm";
+import GroupBalances from "@/components/GroupBalance";
 
 export default function GroupPage() {
   const params = useParams();
@@ -24,18 +25,26 @@ export default function GroupPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState(null);
   const [userBalance, setUserBalance] = useState(null);
+
   const fetchData = async () => {
     try {
+      // Get current user first
+      const userResponse = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/user/get-user`,
+        { withCredentials: true }
+      );
+      const userId = userResponse.data.user._id;
+      setCurrentUserId(userId); // This is async!
+
+      // Then get group data
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/groups/get-group-expenses/${params.id}`,
         { withCredentials: true }
       );
       setData(response.data);
 
-      const currentUserId = "68668b8ec0c26e4cf0083d95";
-      const userBal = response.data.balances.find(
-        (b) => b.id === currentUserId
-      );
+      // Find balance for current user - use userId directly here
+      const userBal = response.data.balances.find((b) => b.id === userId);
       setUserBalance(userBal || null);
     } catch (error) {
       toast.error("Failed to fetch group data");
@@ -57,7 +66,7 @@ export default function GroupPage() {
       );
       response
         .then((res) => {
-          setCurrentUserId(res.data._id);
+          setCurrentUserId(res.data.user._id);
         })
         .catch((err) => {
           console.error("Error fetching current user ID:", err);
@@ -130,7 +139,6 @@ export default function GroupPage() {
     return (
       <div className="space-y-4">
         {settlements.map((settlement) => {
-          const currentUserId = "68668b8ec0c26e4cf0083d95"; // TODO: Replace with actual current user ID
           const isCurrentUserPayer =
             settlement.paidByUserId.id === currentUserId;
 
@@ -169,106 +177,6 @@ export default function GroupPage() {
             </Card>
           );
         })}
-      </div>
-    );
-  };
-
-  // Group Balances Component
-  const GroupBalances = ({ balances, userLookupMap }) => {
-    const currentUserId = "68668b8ec0c26e4cf0083d95"; // TODO: Replace with actual current user ID
-    const userBal = balances.find((b) => b.id === currentUserId);
-
-    if (!userBal) return null;
-
-    return (
-      <div>
-        <div className="mb-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="font-medium">Your balance</h3>
-              {userBal.totalBalance === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  You are all settled up
-                </p>
-              ) : userBal.totalBalance > 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  You are owed money
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground">You owe money</p>
-              )}
-            </div>
-            <div
-              className={`text-xl font-bold ${
-                userBal.totalBalance > 0
-                  ? "text-green-600"
-                  : userBal.totalBalance < 0
-                  ? "text-red-600"
-                  : ""
-              }`}
-            >
-              ${Math.abs(userBal.totalBalance).toFixed(2)}
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {userBal.owedBy.length > 0 && (
-            <div>
-              <h4 className="font-medium mb-2">Owed to you</h4>
-              {userBal.owedBy.map((owed) => {
-                const member = userLookupMap[owed.userId];
-                return (
-                  <div
-                    key={owed.userId}
-                    className="flex justify-between items-center py-2"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={member?.imageUrl} />
-                        <AvatarFallback>
-                          {member?.name?.charAt(0) || "?"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>{member?.name}</span>
-                    </div>
-                    <span className="font-medium text-green-600">
-                      ${owed.amount.toFixed(2)}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {userBal.owes.length > 0 && (
-            <div>
-              <h4 className="font-medium mb-2">You owe</h4>
-              {userBal.owes.map((owe) => {
-                const member = userLookupMap[owe.userId];
-                return (
-                  <div
-                    key={owe.userId}
-                    className="flex justify-between items-center py-2"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={member?.imageUrl} />
-                        <AvatarFallback>
-                          {member?.name?.charAt(0) || "?"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>{member?.name}</span>
-                    </div>
-                    <span className="font-medium text-red-600">
-                      ${owe.amount.toFixed(2)}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
       </div>
     );
   };
@@ -339,6 +247,7 @@ export default function GroupPage() {
             </CardHeader>
             <CardContent>
               <GroupBalances
+                currentUserId={currentUserId}
                 balances={data.balances}
                 userLookupMap={data.userLookupMap}
               />
