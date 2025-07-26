@@ -47,7 +47,7 @@ const GroupBalances = ({ currentUserId, balances, userLookupMap }) => {
                   : ""
               }`}
             >
-              {userBal.totalBalance >= 0 ? "+" : ""}$
+              {userBal.totalBalance >= 0 ? "+" : ""}&#8377;
               {Math.abs(userBal.totalBalance).toFixed(2)}
             </div>
           </div>
@@ -84,7 +84,7 @@ const GroupBalances = ({ currentUserId, balances, userLookupMap }) => {
                         <span>{member.name} owes you</span>
                       </div>
                       <span className="font-medium text-green-600">
-                        +${owed.amount.toFixed(2)}
+                        +&#8377;{owed.amount.toFixed(2)}
                       </span>
                     </div>
                   );
@@ -118,7 +118,8 @@ const GroupBalances = ({ currentUserId, balances, userLookupMap }) => {
                         <span>You owe {member.name}</span>
                       </div>
                       <span className="font-medium text-red-600">
-                        -${owe.amount.toFixed(2)}
+                        -&#8377;
+                        {owe.amount.toFixed(2)}
                       </span>
                     </div>
                   );

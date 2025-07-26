@@ -116,7 +116,10 @@ export default function GroupPage() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium">${expense.amount.toFixed(2)}</p>
+                  <p className="font-medium">
+                    &#8377;
+                    {expense.amount.toFixed(2)}
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     Paid by{" "}
                     {expense.paidByUserId?.name ||
@@ -234,7 +237,7 @@ export default function GroupPage() {
 
         <div className="flex gap-2">
           <Button asChild variant="outline">
-            <SettleUpForm 
+            <SettleUpForm
               group={data}
               currentUserId={currentUserId}
               onSettlementAdded={fetchData}
