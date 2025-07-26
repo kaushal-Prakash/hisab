@@ -451,59 +451,6 @@ const calculateBalances = async (req, res) => {
   }
 };
 
-const settleUp = async (req, res) => {
-  try {
-    const { payerId, receiverId, amount, groupId } = req.body;
-    const userId = req.user._id;
-
-    if (!payerId || !receiverId || !amount || amount <= 0) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    // Validate users
-    if (payerId === receiverId) {
-      return res
-        .status(400)
-        .json({ message: "Payer and receiver cannot be the same" });
-    }
-
-    // Check if current user is involved
-    if (userId.toString() !== payerId && userId.toString() !== receiverId) {
-      return res
-        .status(403)
-        .json({ message: "Not authorized to create this settlement" });
-    }
-
-    // Create a settlement expense
-    const settlement = new Expense({
-      paidByUserId: payerId,
-      amount,
-      description: "Settlement payment",
-      category: "settlement",
-      splitType: "unequal",
-      splits: [
-        {
-          userId: receiverId,
-          amount,
-        },
-      ],
-      relatedSettlementId: null,
-      createdBy: userId,
-      groupId: groupId || null,
-    });
-
-    await settlement.save();
-
-    return res.status(201).json({
-      message: "Settlement recorded successfully",
-      settlement,
-    });
-  } catch (error) {
-    console.error("Error creating settlement:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
 const getExpensesBetweenUsers = async (req, res) => {
   try {
     const me = new mongoose.Types.ObjectId(req.user._id);
@@ -554,15 +501,25 @@ const getExpensesBetweenUsers = async (req, res) => {
 
       return meInvolved && themInvolved;
     });
-
+    console.log('Searching for settlements between:', me, 'and', userId);
     // 3. Get settlements between the two users
     const settlements = await Settlement.find({
       groupId: null,
       $or: [
-        { paidByUserId: me, receivedByUserId: userId },
-        { paidByUserId: userId, receivedByUserId: me },
+        {
+          paidByUserId: me,
+          receivedByUserId: userId,
+        },
+        {
+          paidByUserId: userId,
+          receivedByUserId: me,
+        },
       ],
-    }).sort({ createdAt: -1 });
+    })
+      .populate("paidByUserId", "name email imageUrl")
+      .populate("receivedByUserId", "name email imageUrl")
+      .sort({ createdAt: -1 });
+    console.log(settlements);
 
     // 4. Calculate balance
     let balance = 0;
@@ -623,6 +580,5 @@ export {
   updateExpense,
   deleteExpense,
   calculateBalances,
-  settleUp,
   getExpensesBetweenUsers,
 };

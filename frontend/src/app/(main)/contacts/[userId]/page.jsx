@@ -14,6 +14,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import ContactPageForm from "@/components/ContactPageForm";
+import PersonalSettlementForm from "@/components/ContactSettlementForm";
 
 export default function PersonalExpensesPage() {
   const params = useParams();
@@ -34,6 +35,7 @@ export default function PersonalExpensesPage() {
           `${process.env.NEXT_PUBLIC_API_URL}/contact/contact/${params.userId}`,
           { withCredentials: true }
         );
+        console.log("Fetched data:", response.data);
         setData(response.data);
       } catch (error) {
         toast.error("Failed to fetch data");
@@ -97,12 +99,25 @@ export default function PersonalExpensesPage() {
         </div>
 
         <div className="flex gap-2">
-          <Button asChild variant="outline">
-            <Link href={`/settlements/user/${params.id}`}>
-              <ArrowLeftRight className="mr-2 h-4 w-4" />
-              Settle up
-            </Link>
-          </Button>
+            <PersonalSettlementForm
+              otherUser={data.otherUser}
+              currentUserId={data.user}
+              onSettlementAdded={() => {
+                // Refresh data after adding settlement
+                const fetchData = async () => {
+                  try {
+                    const response = await axios.get(
+                      `${process.env.NEXT_PUBLIC_API_URL}/contact/contact/${params.userId}`,
+                      { withCredentials: true }
+                    );
+                    setData(response.data);
+                  } catch (error) {
+                    console.error("Error refreshing data:", error);
+                  }
+                };
+                fetchData();
+              }}
+            />
           <ContactPageForm
             otherUser={data.otherUser}
             currentUserId={data.user}

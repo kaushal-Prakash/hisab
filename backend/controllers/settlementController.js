@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import Settlement from "../models/Settlements.js";
 
 const addSettlement = async (req, res) => {
@@ -85,4 +84,62 @@ const getGroupSettlements = async (req, res) => {
   }
 };
 
-export { addSettlement, getGroupSettlements };
+const addPersonalSettlement = async (req, res) => {
+  try {
+    const {
+      paidByUserId,
+      receivedByUserId,
+      amount,
+      description,
+      note,
+      relatedExpenseId,
+    } = req.body;
+
+    // Validate input
+    if (!paidByUserId || !receivedByUserId || !amount || !description) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    if (paidByUserId === receivedByUserId) {
+      return res
+        .status(400)
+        .json({ error: "Payer and recipient cannot be the same" });
+    }
+
+    if (amount <= 0) {
+      return res.status(400).json({ error: "Amount must be greater than 0" });
+    }
+
+    // Create new settlement (groupId will be null for personal settlements)
+    const newSettlement = new Settlement({
+      groupId: null,
+      paidByUserId,
+      receivedByUserId,
+      amount,
+      description,
+      note: note || "",
+      relatedExpenseId: relatedExpenseId || null,
+    });
+
+    // Save settlement
+    const savedSettlement = await newSettlement.save();
+
+    // Populate user details in the response
+    const populatedSettlement = await Settlement.findById(savedSettlement._id)
+      .populate("paidByUserId", "name imageUrl")
+      .populate("receivedByUserId", "name imageUrl");
+
+    res.status(201).json({
+      message: "Personal settlement recorded successfully",
+      settlement: populatedSettlement,
+    });
+  } catch (error) {
+    console.error("Error adding personal settlement:", error);
+    res.status(500).json({
+      error: "Internal server error",
+      details: error.message,
+    });
+  }
+};
+
+export { addSettlement, getGroupSettlements, addPersonalSettlement };
