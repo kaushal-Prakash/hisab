@@ -52,6 +52,7 @@ const settlementSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Expenses",
       default: null,
+      required: [false, "Related expense ID is optional"],
     }
   },
   {

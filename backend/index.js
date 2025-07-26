@@ -4,6 +4,7 @@ import contactRoute from "./routes/contactRoutes.js";
 import ExpensesRouter from './routes/expenseRoutes.js'
 import GroupRoute from "./routes/groupRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
+import settlementRoutes from "./routes/settlementRoutes.js";
 import cors from "cors";
 import connectDB from "./utils/mongo.js";
 import cookieParser from 'cookie-parser';
@@ -23,6 +24,7 @@ app.use("/contact",contactRoute);
 app.use("/groups", GroupRoute);
 app.use("/expenses", ExpensesRouter);
 app.use("/dashboard", dashboardRoutes);
+app.use("/settlements", settlementRoutes);
 
 //connect to MongoDB
 connectDB();
