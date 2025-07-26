@@ -501,7 +501,6 @@ const getExpensesBetweenUsers = async (req, res) => {
 
       return meInvolved && themInvolved;
     });
-    console.log('Searching for settlements between:', me, 'and', userId);
     // 3. Get settlements between the two users
     const settlements = await Settlement.find({
       groupId: null,
@@ -519,7 +518,6 @@ const getExpensesBetweenUsers = async (req, res) => {
       .populate("paidByUserId", "name email imageUrl")
       .populate("receivedByUserId", "name email imageUrl")
       .sort({ createdAt: -1 });
-    console.log(settlements);
 
     // 4. Calculate balance
     let balance = 0;
