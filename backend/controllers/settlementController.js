@@ -26,7 +26,6 @@ const addSettlement = async (req, res) => {
     }
 
     if (paidByUserId === receivedByUserId) {
-      await session.abortTransaction();
       return res
         .status(400)
         .json({ error: "Payer and recipient cannot be the same" });

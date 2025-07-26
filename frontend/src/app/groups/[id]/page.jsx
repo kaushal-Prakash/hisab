@@ -166,7 +166,7 @@ export default function GroupPage() {
                         isCurrentUserPayer ? "text-red-600" : "text-green-600"
                       }`}
                     >
-                      ${settlement.amount.toFixed(2)}
+                      &#8377;{settlement.amount.toFixed(2)}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {isCurrentUserPayer
