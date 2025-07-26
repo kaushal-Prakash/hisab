@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { AddExpenseForm } from "@/components/ExpenseForm";
 import GroupBalances from "@/components/GroupBalance";
+import SettleUpForm from "@/components/SettleUpForm";
 
 export default function GroupPage() {
   const params = useParams();
@@ -89,8 +90,8 @@ export default function GroupPage() {
   }
 
   const handleExpenseAdded = () => {
-  fetchData(); // This will re-fetch all group data
-};
+    fetchData(); // This will re-fetch all group data
+  };
 
   // Expense List Component
   const ExpenseList = ({ expenses, userLookupMap }) => {
@@ -233,13 +234,14 @@ export default function GroupPage() {
 
         <div className="flex gap-2">
           <Button asChild variant="outline">
-            <Link href={`/settlements/group/${params.id}`}>
-              <ArrowLeftRight className="mr-2 h-4 w-4" />
-              Settle up
-            </Link>
+            <SettleUpForm 
+              group={data}
+              currentUserId={currentUserId}
+              onSettlementAdded={fetchData}
+            />
           </Button>
 
-<AddExpenseForm group={data} onExpenseAdded={handleExpenseAdded} />
+          <AddExpenseForm group={data} onExpenseAdded={handleExpenseAdded} />
         </div>
       </div>
 
