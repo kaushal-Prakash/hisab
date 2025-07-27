@@ -7,13 +7,6 @@
 
 An intelligent personal finance tracker to manage expenses, analyze spending with AI, and achieve your financial goals.
 
-<br />
-
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
-[![Make a Pull Request](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
-[![Forks](https://img.shields.io/github/forks/yourusername/hisab?style=social)](https://github.com/yourusername/hisab/fork)
-[![Stars](https://img.shields.io/github/stars/yourusername/hisab?style=social)](https://github.com/yourusername/hisab/stargazers)
-
 </div>
 
 ---
