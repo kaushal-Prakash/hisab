@@ -20,9 +20,7 @@ An intelligent personal finance tracker to manage expenses, analyze spending wit
 
 **Hisab** is a full-stack personal finance application designed to provide users with a seamless way to track their expenses. It leverages the power of AI to deliver personalized spending insights and sends automated monthly reports, helping you stay on top of your finances.
 
-> **Note**
-> Don't forget to add a screenshot of your application here!  
-> `![App Screenshot](./hero.png)`
+![App Screenshot](./hero.png)
 
 ---
 
@@ -75,7 +73,7 @@ Follow these instructions to get a local copy up and running.
    ```bash
    git clone https://github.com/yourusername/hisab.git
    cd hisab
-````
+   ````
 
 2. **Setup Backend**
 
