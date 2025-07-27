@@ -22,7 +22,7 @@ An intelligent personal finance tracker to manage expenses, analyze spending wit
 
 > **Note**
 > Don't forget to add a screenshot of your application here!  
-> `![App Screenshot](https://drive.google.com/file/d/1PEHZrmMfN7c-C8IxjZXbfdr6jncrRVit/view?usp=sharing)`
+> `![App Screenshot](./hero.png)`
 
 ---
 
