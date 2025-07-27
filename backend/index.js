@@ -8,6 +8,7 @@ import settlementRoutes from "./routes/settlementRoutes.js";
 import cors from "cors";
 import connectDB from "./utils/mongo.js";
 import cookieParser from 'cookie-parser';
+import sendMail from "./utils/resend.js";
 const app = e();
 const PORT = process.env.PORT;
 import "./cronJobs/index.js"; // Import cron jobs to ensure they run on server start

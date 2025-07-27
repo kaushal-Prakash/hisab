@@ -2,7 +2,7 @@ import cron from 'node-cron';
 import userInsights from './spendingInsightTask.js';
 
 // Schedule to run at 8:00 AM on the 1st of every month
-cron.schedule('* * * * *', async () => {
+cron.schedule('0 8 1 * *', async () => {
   console.log('Running monthly spending insights generation...');
   
   try {
