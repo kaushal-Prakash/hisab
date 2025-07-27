@@ -10,6 +10,7 @@ import connectDB from "./utils/mongo.js";
 import cookieParser from 'cookie-parser';
 const app = e();
 const PORT = process.env.PORT;
+import "./cronJobs/index.js"; // Import cron jobs to ensure they run on server start
 
 app.use(e.json());
 app.use(cookieParser());
