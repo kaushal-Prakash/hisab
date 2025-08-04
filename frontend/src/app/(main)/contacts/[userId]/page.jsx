@@ -35,7 +35,6 @@ export default function PersonalExpensesPage() {
           `${process.env.NEXT_PUBLIC_API_URL}/contact/contact/${params.userId}`,
           { withCredentials: true }
         );
-        console.log("Fetched data:", response.data);
         setData(response.data);
       } catch (error) {
         toast.error("Failed to fetch data");
