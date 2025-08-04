@@ -3,15 +3,15 @@
 
 <br />
 
-# Hisab - Personal Expense Tracker 💰
+# Hisab - Expense Splitting with AI 💸
 
-An intelligent personal finance tracker to manage expenses, analyze spending with AI, and achieve your financial goals.
+A modern expense-splitting platform to manage shared finances with friends and family—powered by AI insights.
 
 </div>
 
 ---
 
-**Hisab** is a full-stack personal finance application designed to provide users with a seamless way to track their expenses. It leverages the power of AI to deliver personalized spending insights and sends automated monthly reports, helping you stay on top of your finances.
+**Hisab** is a full-stack expense-splitting application, similar to Splitwise, designed to help users manage shared expenses, track balances, and gain insights into their spending behavior. With AI-powered analysis and automated reports, Hisab keeps your financial collaborations smooth and intelligent.
 
 ![App Screenshot](./hero.png)
 
@@ -19,12 +19,12 @@ An intelligent personal finance tracker to manage expenses, analyze spending wit
 
 ## ✨ Features
 
-- **📊 Expense Tracking:** Log and categorize your daily expenses with an intuitive interface.
-- **🤖 AI-Powered Insights:** Get smart analysis of your spending habits powered by the **Google Gemini API**.
-- **📧 Automated Reports:** Receive beautiful, summarized monthly expense reports directly in your inbox via **Resend**.
-- **🔄 Recurring Expenses:** Set up and automatically track recurring bills and subscriptions.
-- **👥 Group Management:** Create groups to manage shared expenses with friends or family.
-- **🖼️ Receipt Uploads:** Attach images of your receipts to expenses using **ImageKit** for better record-keeping.
+- **📊 Shared Expense Tracking:** Seamlessly log and split group expenses with others.
+- **🤖 AI-Powered Insights:** Understand your spending behavior with analysis powered by the **Google Gemini API**.
+- **📧 Automated Reports:** Get monthly summaries of your personal and group expenses delivered via **Resend**.
+- **🔁 Recurring Expenses:** Auto-track subscriptions and recurring bills across groups.
+- **👥 Group Management:** Create and manage groups to split rent, trips, or any shared expenses.
+- **🖼️ Receipt Uploads:** Upload and attach receipts to expenses using **ImageKit** for better transparency.
 - **📱 Responsive Design:** A clean, mobile-first design built with Next.js and Tailwind CSS.
 
 ---
@@ -44,71 +44,6 @@ This project is a full-stack MERN application with a few modern twists.
 | **State Management:** Next.js App Router | **File Uploads:** ImageKit & Multer |
 | **Linting:** ESLint | **Scheduled Jobs:** `node-cron` |
 
----
-
-## ⚙️ Getting Started
-
-Follow these instructions to get a local copy up and running.
-
-### Prerequisites
-
-- **Node.js** (v18 or higher)
-- **MongoDB** (A local instance or a free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account)
-- **API Keys** for:
-  - Google Gemini
-  - Resend
-  - ImageKit
-
-### Installation & Setup
-
-1. **Clone the Repository**
-
-   ```bash
-   git clone https://github.com/yourusername/hisab.git
-   cd hisab
-   ````
-
-2. **Setup Backend**
-
-   ```bash
-   cd backend
-   npm install
-   ```
-
-   Create a `.env` file in the `backend` directory and fill it with your credentials (see the **Environment Variables** section below).
-
-3. **Setup Frontend**
-
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-
-   Create a `.env.local` file in the `frontend` directory:
-
-   ```env
-   NEXT_PUBLIC_API_URL=http://localhost:8000
-   ```
-
-4. **Run the Application**
-
-   Open two terminal windows.
-
-   * In the first terminal, start the backend server:
-
-     ```bash
-     cd backend
-     npm run dev
-     ```
-
-   * In the second terminal, start the frontend server:
-
-     ```bash
-     cd frontend
-     npm run dev
-     ```
-
-   * Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
