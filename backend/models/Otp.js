@@ -18,4 +18,4 @@ const otpSchema = new mongoose.Schema({
 
 // Create new model if not exists
 // Otherwise use existing model
-export default mongoose.model.user || mongoose.model('Otp', otpSchema);
+export default mongoose.model.Otp || mongoose.model('Otp', otpSchema);
