@@ -16,7 +16,7 @@ import "./cronJobs/index.js"; // Import cron jobs to ensure they run on server s
 app.use(e.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: ["http://localhost:3000","https://hisab-cyan.vercel.app"], // Allow requests from this origin
   credentials: true, // Allow cookies to be sent
 }));
 
