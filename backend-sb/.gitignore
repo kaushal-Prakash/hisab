@@ -1,0 +1,79 @@
+# =========================
+# Maven
+# =========================
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Wrapper files
+.mvn/wrapper/maven-wrapper.jar
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Spring Boot
+# =========================
+*.jar
+*.war
+*.ear
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.*
+application-local.yml
+application-dev.yml
+
+# =========================
+# IDEs
+# =========================
+
+# IntelliJ
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# VS Code
+.vscode/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Node (for your frontend)
+# =========================
+node_modules/
+.next/
+dist/
+build/
+
+# =========================
+# Docker (optional)
+# =========================
+docker-compose.override.yml
+
+# =========================
+# Coverage & reports
+# =========================
+coverage/
+*.lcov
+
+# =========================
+# Misc
+# =========================
+*.swp
+*.swo
