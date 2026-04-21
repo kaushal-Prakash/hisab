@@ -9,17 +9,21 @@ import com.hisab.AuthService.model.User;
 import com.hisab.AuthService.repository.UserRepository;
 import com.hisab.AuthService.security.JwtUtil;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+
 @Service
 public class AuthService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    public AuthService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
     }
 
-    public Map<String, String> signup(Map<String, String> body) {
+    // SIGNUP
+    public Map<String, String> signup(Map<String, String> body, HttpServletResponse response) {
 
         String name = body.get("name");
         String email = body.get("email");
@@ -37,10 +41,15 @@ public class AuthService {
 
         userRepository.save(user);
 
+        String token = JwtUtil.generateToken(user.getId());
+
+        addTokenCookie(response, token);
+
         return Map.of("message", "User registered");
     }
 
-    public Map<String, String> login(Map<String, String> body) {
+    // LOGIN
+    public Map<String, String> login(Map<String, String> body, HttpServletResponse response) {
 
         String email = body.get("email");
         String password = body.get("password");
@@ -54,12 +63,25 @@ public class AuthService {
 
         String token = JwtUtil.generateToken(user.getId());
 
-        return Map.of(
-                "message", "Login successful",
-                "token", token
-        );
+        addTokenCookie(response, token);
+
+        return Map.of("message", "Login successful");
     }
 
+    // LOGOUT
+    public Map<String, String> logout(HttpServletResponse response) {
+
+        Cookie cookie = new Cookie("token", null);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0); // delete cookie
+
+        response.addCookie(cookie);
+
+        return Map.of("message", "Logged out successfully");
+    }
+
+    // CHANGE NAME
     public Map<String, String> changeName(String userId, String newName) {
 
         User user = userRepository.findById(userId)
@@ -71,6 +93,7 @@ public class AuthService {
         return Map.of("message", "Name updated");
     }
 
+    // CHANGE PASSWORD
     public Map<String, String> changePassword(String userId,
                                               String currentPassword,
                                               String newPassword) {
@@ -88,7 +111,23 @@ public class AuthService {
         return Map.of("message", "Password changed");
     }
 
+    // GET USER
     public User getUser(String userId) {
-        return userRepository.findById(userId).orElse(null);
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    // COMMON COOKIE METHOD
+    private void addTokenCookie(HttpServletResponse response, String token) {
+
+        Cookie cookie = new Cookie("token", token);
+        cookie.setHttpOnly(true); // prevents JS access
+        cookie.setPath("/");
+        cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+
+        // Enable in production (HTTPS only)
+        // cookie.setSecure(true);
+
+        response.addCookie(cookie);
     }
 }

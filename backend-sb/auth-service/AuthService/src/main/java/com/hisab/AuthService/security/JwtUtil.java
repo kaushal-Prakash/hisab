@@ -13,8 +13,8 @@ import io.jsonwebtoken.security.Keys;
 @Component
 public class JwtUtil {
 
-    private final String SECRET = "your-secret-key-your-secret-key"; // keep long
-    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
+    private final static String SECRET = "my-super-secret-key-that-is-at-least-32-characters-long";
+    private final static Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
     public static String generateToken(String userId) {
         return Jwts.builder()
