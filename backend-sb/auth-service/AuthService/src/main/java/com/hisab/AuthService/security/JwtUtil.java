@@ -16,7 +16,7 @@ public class JwtUtil {
     private final String SECRET = "your-secret-key-your-secret-key"; // keep long
     private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-    public String generateToken(String userId) {
+    public static String generateToken(String userId) {
         return Jwts.builder()
                 .subject(userId)
                 .issuedAt(new Date())

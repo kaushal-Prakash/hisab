@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.hisab.AuthService.model.User;
 import com.hisab.AuthService.repository.UserRepository;
+import com.hisab.AuthService.security.JwtUtil;
 
 @Service
 public class AuthService {
@@ -51,7 +52,12 @@ public class AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        return Map.of("message", "Login successful");
+        String token = JwtUtil.generateToken(user.getId());
+
+        return Map.of(
+                "message", "Login successful",
+                "token", token
+        );
     }
 
     public Map<String, String> changeName(String userId, String newName) {
