@@ -9,6 +9,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Component
@@ -26,19 +27,26 @@ public class JwtFilter implements Filter {
 
         HttpServletRequest req = (HttpServletRequest) request;
 
-        String authHeader = req.getHeader("Authorization");
+        // READ FROM COOKIES (NOT HEADER)
+        Cookie[] cookies = req.getCookies();
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("token".equals(cookie.getName())) {
 
-            try {
-                String userId = jwtUtil.extractUserId(token);
+                    String token = cookie.getValue();
 
-                // Attach userId like req.user
-                req.setAttribute("userId", userId);
+                    try {
+                        String userId = jwtUtil.extractUserId(token);
 
-            } catch (Exception e) {
-                System.out.println("Invalid JWT");
+                        System.out.println("USER ID: " + userId); // debug
+
+                        req.setAttribute("userId", userId);
+
+                    } catch (Exception e) {
+                        System.out.println("Invalid JWT");
+                    }
+                }
             }
         }
 
