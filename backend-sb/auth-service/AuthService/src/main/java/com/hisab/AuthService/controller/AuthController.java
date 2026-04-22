@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.hisab.AuthService.service.AuthService;
 import com.hisab.AuthService.service.OtpService;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -24,30 +27,48 @@ public class AuthController {
         this.otpService = otpService;
     }
 
+    // SIGNUP
     @PostMapping("/signup")
-    public Map<String, String> signup(@RequestBody Map<String, String> body) {
-        return authService.signup(body);
+    public Map<String, String> signup(@RequestBody Map<String, String> body,
+                                      HttpServletResponse response) {
+        return authService.signup(body, response);
     }
 
+    // LOGIN
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody Map<String, String> body) {
-        return authService.login(body);
+    public Map<String, String> login(@RequestBody Map<String, String> body,
+                                     HttpServletResponse response) {
+        return authService.login(body, response);
     }
 
+    // LOGOUT
+    @PostMapping("/logout")
+    public Map<String, String> logout(HttpServletResponse response) {
+        return authService.logout(response);
+    }
+
+    // CHANGE NAME (uses JWT, not request param)
     @PostMapping("/change-name")
-    public Map<String, String> changeName(@RequestParam String userId,
+    public Map<String, String> changeName(HttpServletRequest request,
                                           @RequestBody Map<String, String> body) {
+        String userId = (String) request.getAttribute("userId");
         return authService.changeName(userId, body.get("newName"));
     }
 
+    // CHANGE PASSWORD
     @PostMapping("/change-password")
-    public Map<String, String> changePassword(@RequestParam String userId,
+    public Map<String, String> changePassword(HttpServletRequest request,
                                               @RequestBody Map<String, String> body) {
-        return authService.changePassword(userId,
+        String userId = (String) request.getAttribute("userId");
+
+        return authService.changePassword(
+                userId,
                 body.get("currentPassword"),
-                body.get("newPassword"));
+                body.get("newPassword")
+        );
     }
 
+    // OTP
     @GetMapping("/create-otp")
     public Map<String, String> createOtp(@RequestParam String email) {
         return otpService.createOtp(email);
@@ -58,8 +79,10 @@ public class AuthController {
         return otpService.verifyOtp(body.get("email"), body.get("otp"));
     }
 
+    // GET USER (SECURE)
     @GetMapping("/get-user")
-    public Object getUser(@RequestParam String userId) {
+    public Object getUser(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
         return authService.getUser(userId);
     }
 }

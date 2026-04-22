@@ -74,7 +74,7 @@ public class AuthService {
         Cookie cookie = new Cookie("token", null);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
-        cookie.setMaxAge(0); // delete cookie
+        cookie.setMaxAge(0);
 
         response.addCookie(cookie);
 
@@ -117,16 +117,13 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    // COMMON COOKIE METHOD
+    // COOKIE HELPER
     private void addTokenCookie(HttpServletResponse response, String token) {
 
         Cookie cookie = new Cookie("token", token);
-        cookie.setHttpOnly(true); // prevents JS access
+        cookie.setHttpOnly(true);
         cookie.setPath("/");
-        cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
-
-        // Enable in production (HTTPS only)
-        // cookie.setSecure(true);
+        cookie.setMaxAge(7 * 24 * 60 * 60);
 
         response.addCookie(cookie);
     }
