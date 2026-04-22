@@ -33,7 +33,7 @@ public class OtpService {
                         .build()
         );
 
-        // 👉 Replace with email sending later
+        // Replace with email sending later
         System.out.println("OTP: " + otp);
 
         return Map.of("message", "OTP sent");

@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: AuthService
+  mongodb:
+    uri: "mongodb://localhost:27017/auth-service-hisab"
+eureka:
+  client:
+    fetch-registry: false
+    register-with-eureka: false
