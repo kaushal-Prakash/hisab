@@ -1,8 +1,21 @@
 spring:
   application:
     name: AuthService
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: devshadow17@gmail.com
+    password: lprd qqfy vwza mxvq
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   mongodb:
-    uri: "mongodb://localhost:27017/auth-service-hisab"
+    uri: mongodb://localhost:27017/auth-service-hisab
+
 eureka:
   client:
     fetch-registry: false

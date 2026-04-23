@@ -13,10 +13,12 @@ import com.hisab.AuthService.repository.OtpRepository;
 public class OtpService {
 
     private final OtpRepository otpRepository;
+    private final EmailService emailService;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    public OtpService(OtpRepository otpRepository) {
+    public OtpService(OtpRepository otpRepository, EmailService emailService) {
         this.otpRepository = otpRepository;
+        this.emailService = emailService;
     }
 
     public Map<String, String> createOtp(String email) {
@@ -33,10 +35,10 @@ public class OtpService {
                         .build()
         );
 
-        // Replace with email sending later
-        System.out.println("OTP: " + otp);
+        // SEND EMAIL
+        emailService.sendOtp(email, otp);
 
-        return Map.of("message", "OTP sent");
+        return Map.of("message", "OTP sent to email");
     }
 
     public Map<String, String> verifyOtp(String email, String otp) {
