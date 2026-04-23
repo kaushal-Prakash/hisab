@@ -20,3 +20,8 @@ eureka:
   client:
     fetch-registry: false
     register-with-eureka: false
+
+imagekit:
+  publicKey: "public_syZvipOdEw/EI5EM1AxwHEp92tc="
+  privateKey: "private_JzgDsc1aNkSTbLiI9mvL905u+NQ="
+  urlEndpoint: "https://ik.imagekit.io/cf7owq7yn/"

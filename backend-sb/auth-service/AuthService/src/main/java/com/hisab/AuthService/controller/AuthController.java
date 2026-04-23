@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.hisab.AuthService.service.AuthService;
 import com.hisab.AuthService.service.OtpService;
@@ -84,5 +87,20 @@ public class AuthController {
     public Object getUser(HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
         return authService.getUser(userId);
+    }
+
+    // IS AUTHENTICATED
+    @GetMapping("/is-authenticated")
+    public Map<String, Object> isAuthenticated(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        return Map.of("user", authService.getUser(userId));
+    }
+
+    // CHANGE PHOTO
+    @PostMapping("/change-photo")
+    public Map<String, Object> changePhoto(HttpServletRequest request,
+                                           @RequestParam("photo") MultipartFile photo) {
+        String userId = (String) request.getAttribute("userId");
+        return authService.changePhoto(userId, photo);
     }
 }

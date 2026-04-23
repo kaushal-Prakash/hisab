@@ -4,6 +4,11 @@ import java.util.Map;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import io.imagekit.sdk.ImageKit;
+import io.imagekit.sdk.models.FileCreateRequest;
+import io.imagekit.sdk.models.results.Result;
 
 import com.hisab.AuthService.model.User;
 import com.hisab.AuthService.repository.UserRepository;
@@ -126,5 +131,41 @@ public class AuthService {
         cookie.setMaxAge(7 * 24 * 60 * 60);
 
         response.addCookie(cookie);
+    }
+
+    // CHANGE PHOTO
+    public Map<String, Object> changePhoto(String userId, MultipartFile photo) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (photo == null || photo.isEmpty()) {
+            throw new RuntimeException("Photo is required");
+        }
+
+        try {
+            ImageKit imageKit = ImageKit.getInstance();
+            
+            String fileName = user.getName() != null ? user.getName().replaceAll("[^a-zA-Z0-9_-]", "") : "user";
+            fileName = fileName + "-" + System.currentTimeMillis() + ".jpg";
+
+            FileCreateRequest fileCreateRequest = new FileCreateRequest(photo.getBytes(), fileName);
+            fileCreateRequest.setFolder("/hisab-profile-photos");
+
+            Result result = imageKit.upload(fileCreateRequest);
+            String newUrl = result.getUrl();
+
+            user.setImageUrl(newUrl);
+            userRepository.save(user);
+
+            return Map.of(
+                    "message", "Photo updated successfully",
+                    "imageUrl", newUrl
+            );
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to upload photo");
+        }
     }
 }
