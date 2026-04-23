@@ -123,5 +123,3 @@ Give a ⭐️ if this project helped you!
 **Kaushal Prakash**
 **Discord:** `kaushalprakash`
 
-```
-
