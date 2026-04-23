@@ -80,6 +80,28 @@ The backend exposes the following REST API endpoints:
 
 ---
 
+## 🐳 Docker Deployment
+
+You can easily run the entire application locally using Docker Compose. Make sure you have Docker and Docker Compose installed on your system.
+
+1. Ensure your `.env` file is set up in the `/backend` directory as described above.
+2. Run the following command from the root of the project:
+
+```bash
+docker-compose up --build
+```
+
+3. The frontend will be available at `http://localhost:3000` and the backend will be accessible at `http://localhost:4000`.
+
+---
+
+## 🔄 Continuous Integration (CI)
+
+This project uses **GitHub Actions** to automatically enforce code quality. 
+A linting workflow runs on every push and pull request to the `main` or `master` branches, checking the `frontend` codebase for any linting errors.
+
+---
+
 ## 🤝 Contributing
 
 Contributions make the open-source community an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
